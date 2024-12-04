@@ -1,15 +1,15 @@
-# Magistrala Go SDK
+# SuperMQ Go SDK
 
-Go SDK, a Go driver for Magistrala HTTP API.
+Go SDK, a Go driver for SuperMQ HTTP API.
 
 Does both system administration (provisioning) and messaging.
 
 ## Installation
 
-Import `"github.com/absmach/magistrala/sdk/go"` in your Go package.
+Import `"github.com/absmach/supermq/sdk/go"` in your Go package.
 
 ```go
-import "github.com/absmach/magistrala/pkg/sdk/go"
+import "github.com/absmach/supermq/pkg/sdk/go"
 ```
 
 Then call SDK Go functions to interact with the system.
@@ -61,7 +61,7 @@ func (sdk *MgxSDK) DisconnectClient(clientID, chanID, token string) error
     DisconnectClient - connect client to a channel
 
 func (sdk *MgxSDK) SendMessage(chanID, msg, token string) error
-    SendMessage - send message on Magistrala channel
+    SendMessage - send message on SuperMQ channel
 
 func (sdk *MgxSDK) SetContentType(ct ContentType) error
     SetContentType - set message content type. Available options are SenML
@@ -79,6 +79,6 @@ func (sdk *MgxSDK) UpdateChannel(channel Channel, token string) error
 func (sdk *MgxSDK) UpdateClient(client Client, token string) error
     UpdateClient - updates client by ID
 
-func (sdk *MgxSDK) Health() (magistrala.Health, error)
+func (sdk *MgxSDK) Health() (supermq.Health, error)
     Health - clients service health check
 ```

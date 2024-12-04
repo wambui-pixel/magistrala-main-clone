@@ -10,12 +10,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/invitations"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/invitations"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -30,7 +30,7 @@ const (
 	stateKey     = "state"
 )
 
-func MakeHandler(svc invitations.Service, logger *slog.Logger, authn mgauthn.Authentication, instanceID string) http.Handler {
+func MakeHandler(svc invitations.Service, logger *slog.Logger, authn smqauthn.Authentication, instanceID string) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, api.EncodeError)),
 	}
@@ -82,7 +82,7 @@ func MakeHandler(svc invitations.Service, logger *slog.Logger, authn mgauthn.Aut
 		})
 	})
 
-	mux.Get("/health", magistrala.Health("invitations", instanceID))
+	mux.Get("/health", supermq.Health("invitations", instanceID))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	return mux

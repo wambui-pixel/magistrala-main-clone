@@ -10,23 +10,23 @@ import (
 	"time"
 
 	"github.com/0x6flab/namegenerator"
-	chmocks "github.com/absmach/magistrala/channels/mocks"
-	climocks "github.com/absmach/magistrala/clients/mocks"
-	"github.com/absmach/magistrala/groups"
-	"github.com/absmach/magistrala/groups/mocks"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/authn"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	policysvc "github.com/absmach/magistrala/pkg/policies"
-	policymocks "github.com/absmach/magistrala/pkg/policies/mocks"
-	"github.com/absmach/magistrala/pkg/roles"
-	"github.com/absmach/magistrala/pkg/uuid"
+	chmocks "github.com/absmach/supermq/channels/mocks"
+	climocks "github.com/absmach/supermq/clients/mocks"
+	"github.com/absmach/supermq/groups"
+	"github.com/absmach/supermq/groups/mocks"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	"github.com/absmach/supermq/internal/testsutil"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/authn"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	repoerr "github.com/absmach/supermq/pkg/errors/repository"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	policysvc "github.com/absmach/supermq/pkg/policies"
+	policymocks "github.com/absmach/supermq/pkg/policies/mocks"
+	"github.com/absmach/supermq/pkg/roles"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -227,7 +227,7 @@ func TestViewGroup(t *testing.T) {
 
 	cases := []struct {
 		desc     string
-		session  mgauthn.Session
+		session  smqauthn.Session
 		id       string
 		repoResp groups.Group
 		repoErr  error
@@ -420,7 +420,7 @@ func TestListGroups(t *testing.T) {
 
 	cases := []struct {
 		desc                 string
-		session              mgauthn.Session
+		session              smqauthn.Session
 		pageMeta             groups.PageMeta
 		retrieveAllRes       groups.Page
 		retrieveAllErr       error
@@ -431,7 +431,7 @@ func TestListGroups(t *testing.T) {
 	}{
 		{
 			desc:    "list groups as super admin successfully",
-			session: mgauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID, SuperAdmin: true},
+			session: smqauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID, SuperAdmin: true},
 			pageMeta: groups.PageMeta{
 				Limit:    10,
 				Offset:   0,
@@ -453,7 +453,7 @@ func TestListGroups(t *testing.T) {
 		},
 		{
 			desc:    "list groups as super admin with failed to retrieve",
-			session: mgauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID, SuperAdmin: true},
+			session: smqauthn.Session{UserID: validID, DomainID: validID, DomainUserID: validID, SuperAdmin: true},
 			pageMeta: groups.PageMeta{
 				Limit:    10,
 				Offset:   0,
@@ -515,7 +515,7 @@ func TestListUserGroups(t *testing.T) {
 
 	cases := []struct {
 		desc                 string
-		session              mgauthn.Session
+		session              smqauthn.Session
 		userID               string
 		pageMeta             groups.PageMeta
 		retrieveUserGroupRes groups.Page
@@ -1136,7 +1136,7 @@ func TestListAllChildrenGroups(t *testing.T) {
 
 	cases := []struct {
 		desc        string
-		session     mgauthn.Session
+		session     smqauthn.Session
 		pageMeta    groups.PageMeta
 		parentID    string
 		startLevel  int64

@@ -1,43 +1,43 @@
-# Magistrala CoAP Adapter
+# SuperMQ CoAP Adapter
 
-Magistrala CoAP adapter provides an [CoAP](http://coap.technology/) API for sending messages through the platform.
+SuperMQ CoAP adapter provides an [CoAP](http://coap.technology/) API for sending messages through the platform.
 
 ## Configuration
 
 The service is configured using the environment variables presented in the following table. Note that any unset variables will be replaced with their default values.
 
-| Variable                          | Description                                                                         | Default                           |
-| --------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------- |
-| MG_COAP_ADAPTER_LOG_LEVEL         | Log level for the CoAP Adapter (debug, info, warn, error)                           | info                              |
-| MG_COAP_ADAPTER_HOST              | CoAP service listening host                                                         | ""                                |
-| MG_COAP_ADAPTER_PORT              | CoAP service listening port                                                         | 5683                              |
-| MG_COAP_ADAPTER_SERVER_CERT       | CoAP service server certificate                                                     | ""                                |
-| MG_COAP_ADAPTER_SERVER_KEY        | CoAP service server key                                                             | ""                                |
-| MG_COAP_ADAPTER_HTTP_HOST         | Service HTTP listening host                                                         | ""                                |
-| MG_COAP_ADAPTER_HTTP_PORT         | Service listening port                                                              | 5683                              |
-| MG_COAP_ADAPTER_HTTP_SERVER_CERT  | Service server certificate                                                          | ""                                |
-| MG_COAP_ADAPTER_HTTP_SERVER_KEY   | Service server key                                                                  | ""                                |
-| MG_CLIENTS_AUTH_GRPC_URL          | Clients service Auth gRPC URL                                                       | <localhost:7000>                  |
-| MG_CLIENTS_AUTH_GRPC_TIMEOUT      | Clients service Auth gRPC request timeout in seconds                                | 1s                                |
-| MG_CLIENTS_AUTH_GRPC_CLIENT_CERT  | Path to the PEM encoded clients service Auth gRPC client certificate file           | ""                                |
-| MG_CLIENTS_AUTH_GRPC_CLIENT_KEY   | Path to the PEM encoded clients service Auth gRPC client key file                   | ""                                |
-| MG_CLIENTS_AUTH_GRPC_SERVER_CERTS | Path to the PEM encoded clients server Auth gRPC server trusted CA certificate file | ""                                |
-| MG_MESSAGE_BROKER_URL             | Message broker instance URL                                                         | <nats://localhost:4222>           |
-| MG_JAEGER_URL                     | Jaeger server URL                                                                   | <http://localhost:4318/v1/traces> |
-| MG_JAEGER_TRACE_RATIO             | Jaeger sampling ratio                                                               | 1.0                               |
-| MG_SEND_TELEMETRY                 | Send telemetry to magistrala call home server                                       | true                              |
-| MG_COAP_ADAPTER_INSTANCE_ID       | CoAP adapter instance ID                                                            | ""                                |
+| Variable                           | Description                                                                         | Default                           |
+| ---------------------------------- | ----------------------------------------------------------------------------------- | --------------------------------- |
+| SMQ_COAP_ADAPTER_LOG_LEVEL         | Log level for the CoAP Adapter (debug, info, warn, error)                           | info                              |
+| SMQ_COAP_ADAPTER_HOST              | CoAP service listening host                                                         | ""                                |
+| SMQ_COAP_ADAPTER_PORT              | CoAP service listening port                                                         | 5683                              |
+| SMQ_COAP_ADAPTER_SERVER_CERT       | CoAP service server certificate                                                     | ""                                |
+| SMQ_COAP_ADAPTER_SERVER_KEY        | CoAP service server key                                                             | ""                                |
+| SMQ_COAP_ADAPTER_HTTP_HOST         | Service HTTP listening host                                                         | ""                                |
+| SMQ_COAP_ADAPTER_HTTP_PORT         | Service listening port                                                              | 5683                              |
+| SMQ_COAP_ADAPTER_HTTP_SERVER_CERT  | Service server certificate                                                          | ""                                |
+| SMQ_COAP_ADAPTER_HTTP_SERVER_KEY   | Service server key                                                                  | ""                                |
+| SMQ_CLIENTS_AUTH_GRPC_URL          | Clients service Auth gRPC URL                                                       | <localhost:7000>                  |
+| SMQ_CLIENTS_AUTH_GRPC_TIMEOUT      | Clients service Auth gRPC request timeout in seconds                                | 1s                                |
+| SMQ_CLIENTS_AUTH_GRPC_CLIENT_CERT  | Path to the PEM encoded clients service Auth gRPC client certificate file           | ""                                |
+| SMQ_CLIENTS_AUTH_GRPC_CLIENT_KEY   | Path to the PEM encoded clients service Auth gRPC client key file                   | ""                                |
+| SMQ_CLIENTS_AUTH_GRPC_SERVER_CERTS | Path to the PEM encoded clients server Auth gRPC server trusted CA certificate file | ""                                |
+| SMQ_MESSAGE_BROKER_URL             | Message broker instance URL                                                         | <nats://localhost:4222>           |
+| SMQ_JAEGER_URL                     | Jaeger server URL                                                                   | <http://localhost:4318/v1/traces> |
+| SMQ_JAEGER_TRACE_RATIO             | Jaeger sampling ratio                                                               | 1.0                               |
+| SMQ_SEND_TELEMETRY                 | Send telemetry to magistrala call home server                                       | true                              |
+| SMQ_COAP_ADAPTER_INSTANCE_ID       | CoAP adapter instance ID                                                            | ""                                |
 
 ## Deployment
 
-The service itself is distributed as Docker container. Check the [`coap-adapter`](https://github.com/absmach/magistrala/blob/main/docker/docker-compose.yml) service section in docker-compose file to see how service is deployed.
+The service itself is distributed as Docker container. Check the [`coap-adapter`](https://github.com/absmach/supermq/blob/main/docker/docker-compose.yml) service section in docker-compose file to see how service is deployed.
 
 Running this service outside of container requires working instance of the message broker service, clients service and Jaeger server.
 To start the service outside of the container, execute the following shell script:
 
 ```bash
 # download the latest version of the service
-git clone https://github.com/absmach/magistrala
+git clone https://github.com/absmach/supermq
 
 cd magistrala
 
@@ -48,31 +48,31 @@ make coap
 make install
 
 # set the environment variables and run the service
-MG_COAP_ADAPTER_LOG_LEVEL=info \
-MG_COAP_ADAPTER_HOST=localhost \
-MG_COAP_ADAPTER_PORT=5683 \
-MG_COAP_ADAPTER_SERVER_CERT="" \
-MG_COAP_ADAPTER_SERVER_KEY="" \
-MG_COAP_ADAPTER_HTTP_HOST=localhost \
-MG_COAP_ADAPTER_HTTP_PORT=5683 \
-MG_COAP_ADAPTER_HTTP_SERVER_CERT="" \
-MG_COAP_ADAPTER_HTTP_SERVER_KEY="" \
-MG_CLIENTS_AUTH_GRPC_URL=localhost:7000 \
-MG_CLIENTS_AUTH_GRPC_TIMEOUT=1s \
-MG_CLIENTS_AUTH_GRPC_CLIENT_CERT="" \
-MG_CLIENTS_AUTH_GRPC_CLIENT_KEY="" \
-MG_CLIENTS_AUTH_GRPC_SERVER_CERTS="" \
-MG_MESSAGE_BROKER_URL=nats://localhost:4222 \
-MG_JAEGER_URL=http://localhost:14268/api/traces \
-MG_JAEGER_TRACE_RATIO=1.0 \
-MG_SEND_TELEMETRY=true \
-MG_COAP_ADAPTER_INSTANCE_ID="" \
-$GOBIN/magistrala-coap
+SMQ_COAP_ADAPTER_LOG_LEVEL=info \
+SMQ_COAP_ADAPTER_HOST=localhost \
+SMQ_COAP_ADAPTER_PORT=5683 \
+SMQ_COAP_ADAPTER_SERVER_CERT="" \
+SMQ_COAP_ADAPTER_SERVER_KEY="" \
+SMQ_COAP_ADAPTER_HTTP_HOST=localhost \
+SMQ_COAP_ADAPTER_HTTP_PORT=5683 \
+SMQ_COAP_ADAPTER_HTTP_SERVER_CERT="" \
+SMQ_COAP_ADAPTER_HTTP_SERVER_KEY="" \
+SMQ_CLIENTS_AUTH_GRPC_URL=localhost:7000 \
+SMQ_CLIENTS_AUTH_GRPC_TIMEOUT=1s \
+SMQ_CLIENTS_AUTH_GRPC_CLIENT_CERT="" \
+SMQ_CLIENTS_AUTH_GRPC_CLIENT_KEY="" \
+SMQ_CLIENTS_AUTH_GRPC_SERVER_CERTS="" \
+SMQ_MESSAGE_BROKER_URL=nats://localhost:4222 \
+SMQ_JAEGER_URL=http://localhost:14268/api/traces \
+SMQ_JAEGER_TRACE_RATIO=1.0 \
+SMQ_SEND_TELEMETRY=true \
+SMQ_COAP_ADAPTER_INSTANCE_ID="" \
+$GOBIN/supermq-coap
 ```
 
-Setting `MG_COAP_ADAPTER_SERVER_CERT` and `MG_COAP_ADAPTER_SERVER_KEY` will enable TLS against the service. The service expects a file in PEM format for both the certificate and the key. Setting `MG_COAP_ADAPTER_HTTP_SERVER_CERT` and `MG_COAP_ADAPTER_HTTP_SERVER_KEY` will enable TLS against the service. The service expects a file in PEM format for both the certificate and the key.
+Setting `SMQ_COAP_ADAPTER_SERVER_CERT` and `SMQ_COAP_ADAPTER_SERVER_KEY` will enable TLS against the service. The service expects a file in PEM format for both the certificate and the key. Setting `SMQ_COAP_ADAPTER_HTTP_SERVER_CERT` and `SMQ_COAP_ADAPTER_HTTP_SERVER_KEY` will enable TLS against the service. The service expects a file in PEM format for both the certificate and the key.
 
-Setting `MG_CLIENTS_AUTH_GRPC_CLIENT_CERT` and `MG_CLIENTS_AUTH_GRPC_CLIENT_KEY` will enable TLS against the clients service. The service expects a file in PEM format for both the certificate and the key. Setting `MG_CLIENTS_AUTH_GRPC_SERVER_CERTS` will enable TLS against the clients service trusting only those CAs that are provided. The service expects a file in PEM format of trusted CAs.
+Setting `SMQ_CLIENTS_AUTH_GRPC_CLIENT_CERT` and `SMQ_CLIENTS_AUTH_GRPC_CLIENT_KEY` will enable TLS against the clients service. The service expects a file in PEM format for both the certificate and the key. Setting `SMQ_CLIENTS_AUTH_GRPC_SERVER_CERTS` will enable TLS against the clients service trusting only those CAs that are provided. The service expects a file in PEM format of trusted CAs.
 
 ## Usage
 

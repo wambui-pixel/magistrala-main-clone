@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/absmach/magistrala"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/pkg/roles"
+	"github.com/absmach/supermq"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/pkg/roles"
 )
 
 var ErrGroupIDs = errors.New("invalid group ids")
@@ -24,7 +24,7 @@ var ErrGroupIDs = errors.New("invalid group ids")
 type service struct {
 	repo       Repository
 	policy     policies.Service
-	idProvider magistrala.IDProvider
+	idProvider supermq.IDProvider
 	channels   grpcChannelsV1.ChannelsServiceClient
 	clients    grpcClientsV1.ClientsServiceClient
 
@@ -32,7 +32,7 @@ type service struct {
 }
 
 // NewService returns a new groups service implementation.
-func NewService(repo Repository, policy policies.Service, idp magistrala.IDProvider, channels grpcChannelsV1.ChannelsServiceClient, clients grpcClientsV1.ClientsServiceClient, sidProvider magistrala.IDProvider, availableActions []roles.Action, builtInRoles map[roles.BuiltInRoleName][]roles.Action) (Service, error) {
+func NewService(repo Repository, policy policies.Service, idp supermq.IDProvider, channels grpcChannelsV1.ChannelsServiceClient, clients grpcClientsV1.ClientsServiceClient, sidProvider supermq.IDProvider, availableActions []roles.Action, builtInRoles map[roles.BuiltInRoleName][]roles.Action) (Service, error) {
 	rpms, err := roles.NewProvisionManageService(policies.GroupType, repo, policy, sidProvider, availableActions, builtInRoles)
 	if err != nil {
 		return service{}, err
@@ -47,7 +47,7 @@ func NewService(repo Repository, policy policies.Service, idp magistrala.IDProvi
 	}, nil
 }
 
-func (svc service) CreateGroup(ctx context.Context, session mgauthn.Session, g Group) (gr Group, retErr error) {
+func (svc service) CreateGroup(ctx context.Context, session smqauthn.Session, g Group) (gr Group, retErr error) {
 	groupID, err := svc.idProvider.ID()
 	if err != nil {
 		return Group{}, err
@@ -103,7 +103,7 @@ func (svc service) CreateGroup(ctx context.Context, session mgauthn.Session, g G
 	return saved, nil
 }
 
-func (svc service) ViewGroup(ctx context.Context, session mgauthn.Session, id string) (Group, error) {
+func (svc service) ViewGroup(ctx context.Context, session smqauthn.Session, id string) (Group, error) {
 	group, err := svc.repo.RetrieveByIDAndUser(ctx, session.DomainID, session.UserID, id)
 	if err != nil {
 		return Group{}, errors.Wrap(svcerr.ErrViewEntity, err)
@@ -112,7 +112,7 @@ func (svc service) ViewGroup(ctx context.Context, session mgauthn.Session, id st
 	return group, nil
 }
 
-func (svc service) ListGroups(ctx context.Context, session mgauthn.Session, gm PageMeta) (Page, error) {
+func (svc service) ListGroups(ctx context.Context, session smqauthn.Session, gm PageMeta) (Page, error) {
 	switch session.SuperAdmin {
 	case true:
 		gm.DomainID = session.DomainID
@@ -130,7 +130,7 @@ func (svc service) ListGroups(ctx context.Context, session mgauthn.Session, gm P
 	}
 }
 
-func (svc service) ListUserGroups(ctx context.Context, session mgauthn.Session, userID string, pm PageMeta) (Page, error) {
+func (svc service) ListUserGroups(ctx context.Context, session smqauthn.Session, userID string, pm PageMeta) (Page, error) {
 	page, err := svc.repo.RetrieveUserGroups(ctx, session.DomainID, userID, pm)
 	if err != nil {
 		return Page{}, errors.Wrap(svcerr.ErrViewEntity, err)
@@ -138,7 +138,7 @@ func (svc service) ListUserGroups(ctx context.Context, session mgauthn.Session, 
 	return page, nil
 }
 
-func (svc service) UpdateGroup(ctx context.Context, session mgauthn.Session, g Group) (Group, error) {
+func (svc service) UpdateGroup(ctx context.Context, session smqauthn.Session, g Group) (Group, error) {
 	g.UpdatedAt = time.Now()
 	g.UpdatedBy = session.UserID
 
@@ -149,7 +149,7 @@ func (svc service) UpdateGroup(ctx context.Context, session mgauthn.Session, g G
 	return group, nil
 }
 
-func (svc service) EnableGroup(ctx context.Context, session mgauthn.Session, id string) (Group, error) {
+func (svc service) EnableGroup(ctx context.Context, session smqauthn.Session, id string) (Group, error) {
 	group := Group{
 		ID:        id,
 		Status:    EnabledStatus,
@@ -162,7 +162,7 @@ func (svc service) EnableGroup(ctx context.Context, session mgauthn.Session, id 
 	return group, nil
 }
 
-func (svc service) DisableGroup(ctx context.Context, session mgauthn.Session, id string) (Group, error) {
+func (svc service) DisableGroup(ctx context.Context, session smqauthn.Session, id string) (Group, error) {
 	group := Group{
 		ID:        id,
 		Status:    DisabledStatus,
@@ -175,7 +175,7 @@ func (svc service) DisableGroup(ctx context.Context, session mgauthn.Session, id
 	return group, nil
 }
 
-func (svc service) RetrieveGroupHierarchy(ctx context.Context, session mgauthn.Session, id string, hm HierarchyPageMeta) (HierarchyPage, error) {
+func (svc service) RetrieveGroupHierarchy(ctx context.Context, session smqauthn.Session, id string, hm HierarchyPageMeta) (HierarchyPage, error) {
 	hp, err := svc.repo.RetrieveHierarchy(ctx, id, hm)
 	if err != nil {
 		return HierarchyPage{}, errors.Wrap(svcerr.ErrViewEntity, err)
@@ -223,7 +223,7 @@ func (svc service) getGroupIDs(gps []Group) []string {
 	return hids
 }
 
-func (svc service) AddParentGroup(ctx context.Context, session mgauthn.Session, id, parentID string) (retErr error) {
+func (svc service) AddParentGroup(ctx context.Context, session smqauthn.Session, id, parentID string) (retErr error) {
 	group, err := svc.repo.RetrieveByID(ctx, id)
 	if err != nil {
 		return errors.Wrap(svcerr.ErrViewEntity, err)
@@ -259,7 +259,7 @@ func (svc service) AddParentGroup(ctx context.Context, session mgauthn.Session, 
 	return nil
 }
 
-func (svc service) RemoveParentGroup(ctx context.Context, session mgauthn.Session, id string) (retErr error) {
+func (svc service) RemoveParentGroup(ctx context.Context, session smqauthn.Session, id string) (retErr error) {
 	group, err := svc.repo.RetrieveByID(ctx, id)
 	if err != nil {
 		return errors.Wrap(svcerr.ErrViewEntity, err)
@@ -296,7 +296,7 @@ func (svc service) RemoveParentGroup(ctx context.Context, session mgauthn.Sessio
 	return nil
 }
 
-func (svc service) AddChildrenGroups(ctx context.Context, session mgauthn.Session, parentGroupID string, childrenGroupIDs []string) (retErr error) {
+func (svc service) AddChildrenGroups(ctx context.Context, session smqauthn.Session, parentGroupID string, childrenGroupIDs []string) (retErr error) {
 	childrenGroupsPage, err := svc.repo.RetrieveByIDs(ctx, PageMeta{Limit: 1<<63 - 1}, childrenGroupIDs...)
 	if err != nil {
 		return errors.Wrap(svcerr.ErrViewEntity, err)
@@ -340,7 +340,7 @@ func (svc service) AddChildrenGroups(ctx context.Context, session mgauthn.Sessio
 	return nil
 }
 
-func (svc service) RemoveChildrenGroups(ctx context.Context, session mgauthn.Session, parentGroupID string, childrenGroupIDs []string) (retErr error) {
+func (svc service) RemoveChildrenGroups(ctx context.Context, session smqauthn.Session, parentGroupID string, childrenGroupIDs []string) (retErr error) {
 	childrenGroupsPage, err := svc.repo.RetrieveByIDs(ctx, PageMeta{Limit: 1<<63 - 1}, childrenGroupIDs...)
 	if err != nil {
 		return errors.Wrap(svcerr.ErrViewEntity, err)
@@ -382,7 +382,7 @@ func (svc service) RemoveChildrenGroups(ctx context.Context, session mgauthn.Ses
 	return nil
 }
 
-func (svc service) RemoveAllChildrenGroups(ctx context.Context, session mgauthn.Session, id string) error {
+func (svc service) RemoveAllChildrenGroups(ctx context.Context, session smqauthn.Session, id string) error {
 	pol := policies.Policy{
 		Domain:      session.DomainID,
 		SubjectType: policies.GroupType,
@@ -401,7 +401,7 @@ func (svc service) RemoveAllChildrenGroups(ctx context.Context, session mgauthn.
 	return nil
 }
 
-func (svc service) ListChildrenGroups(ctx context.Context, session mgauthn.Session, id string, startLevel, endLevel int64, pm PageMeta) (Page, error) {
+func (svc service) ListChildrenGroups(ctx context.Context, session smqauthn.Session, id string, startLevel, endLevel int64, pm PageMeta) (Page, error) {
 	page, err := svc.repo.RetrieveChildrenGroups(ctx, session.DomainID, session.UserID, id, startLevel, endLevel, pm)
 	if err != nil {
 		return Page{}, errors.Wrap(svcerr.ErrViewEntity, err)
@@ -409,7 +409,7 @@ func (svc service) ListChildrenGroups(ctx context.Context, session mgauthn.Sessi
 	return page, nil
 }
 
-func (svc service) DeleteGroup(ctx context.Context, session mgauthn.Session, id string) error {
+func (svc service) DeleteGroup(ctx context.Context, session smqauthn.Session, id string) error {
 	if _, err := svc.channels.UnsetParentGroupFromChannels(ctx, &grpcChannelsV1.UnsetParentGroupFromChannelsReq{ParentGroupId: id}); err != nil {
 		return errors.Wrap(svcerr.ErrRemoveEntity, err)
 	}
@@ -493,7 +493,7 @@ func (svc service) listAllGroupsOfUserID(ctx context.Context, userID, permission
 	return allowedIDs.Policies, nil
 }
 
-func (svc service) changeGroupStatus(ctx context.Context, session mgauthn.Session, group Group) (Group, error) {
+func (svc service) changeGroupStatus(ctx context.Context, session smqauthn.Session, group Group) (Group, error) {
 	dbGroup, err := svc.repo.RetrieveByID(ctx, group.ID)
 	if err != nil {
 		return Group{}, errors.Wrap(svcerr.ErrViewEntity, err)

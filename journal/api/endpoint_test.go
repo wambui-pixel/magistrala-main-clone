@@ -12,15 +12,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/journal"
-	"github.com/absmach/magistrala/journal/api"
-	"github.com/absmach/magistrala/journal/mocks"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	authnmocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
+	"github.com/absmach/supermq/internal/testsutil"
+	"github.com/absmach/supermq/journal"
+	"github.com/absmach/supermq/journal/api"
+	"github.com/absmach/supermq/journal/mocks"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -51,7 +51,7 @@ func (tr testRequest) make() (*http.Response, error) {
 func newjournalServer() (*httptest.Server, *mocks.Service, *authnmocks.Authentication) {
 	svc := new(mocks.Service)
 
-	logger := mglog.NewMock()
+	logger := smqlog.NewMock()
 	authn := new(authnmocks.Authentication)
 	mux := api.MakeHandler(svc, authn, logger, "journal-log", "test")
 	return httptest.NewServer(mux), svc, authn
@@ -63,7 +63,7 @@ func TestListUserJournalsEndpoint(t *testing.T) {
 	cases := []struct {
 		desc        string
 		token       string
-		session     mgauthn.Session
+		session     smqauthn.Session
 		url         string
 		contentType string
 		status      int
@@ -256,7 +256,7 @@ func TestListUserJournalsEndpoint(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.desc, func(t *testing.T) {
 			if c.token == validToken {
-				c.session = mgauthn.Session{
+				c.session = smqauthn.Session{
 					UserID: testsutil.GenerateUUID(t),
 				}
 			}
@@ -288,7 +288,7 @@ func TestListEntityJournalsEndpoint(t *testing.T) {
 	cases := []struct {
 		desc        string
 		token       string
-		session     mgauthn.Session
+		session     smqauthn.Session
 		domainID    string
 		url         string
 		contentType string
@@ -379,7 +379,7 @@ func TestListEntityJournalsEndpoint(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.desc, func(t *testing.T) {
 			if c.token == validToken {
-				c.session = mgauthn.Session{
+				c.session = smqauthn.Session{
 					UserID:       userID,
 					DomainID:     domainID,
 					DomainUserID: domainID + "_" + userID,

@@ -9,26 +9,26 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	chmocks "github.com/absmach/magistrala/channels/mocks"
-	climocks "github.com/absmach/magistrala/clients/mocks"
-	adapter "github.com/absmach/magistrala/http"
-	"github.com/absmach/magistrala/http/api"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	authnmocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	pubsub "github.com/absmach/magistrala/pkg/messaging/mocks"
-	sdk "github.com/absmach/magistrala/pkg/sdk/go"
-	"github.com/absmach/magistrala/pkg/transformers/senml"
-	"github.com/absmach/magistrala/readers"
-	readersapi "github.com/absmach/magistrala/readers/api"
-	readersmocks "github.com/absmach/magistrala/readers/mocks"
 	"github.com/absmach/mgate"
 	proxy "github.com/absmach/mgate/pkg/http"
+	chmocks "github.com/absmach/supermq/channels/mocks"
+	climocks "github.com/absmach/supermq/clients/mocks"
+	adapter "github.com/absmach/supermq/http"
+	"github.com/absmach/supermq/http/api"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	pubsub "github.com/absmach/supermq/pkg/messaging/mocks"
+	sdk "github.com/absmach/supermq/pkg/sdk/go"
+	"github.com/absmach/supermq/pkg/transformers/senml"
+	"github.com/absmach/supermq/readers"
+	readersapi "github.com/absmach/supermq/readers/api"
+	readersmocks "github.com/absmach/supermq/readers/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -43,16 +43,16 @@ func setupMessages() (*httptest.Server, *pubsub.PubSub) {
 	channelsGRPCClient = new(chmocks.ChannelsServiceClient)
 	pub := new(pubsub.PubSub)
 	authn := new(authnmocks.Authentication)
-	handler := adapter.NewHandler(pub, authn, clientsGRPCClient, channelsGRPCClient, mglog.NewMock())
+	handler := adapter.NewHandler(pub, authn, clientsGRPCClient, channelsGRPCClient, smqlog.NewMock())
 
-	mux := api.MakeHandler(mglog.NewMock(), "")
+	mux := api.MakeHandler(smqlog.NewMock(), "")
 	target := httptest.NewServer(mux)
 
 	config := mgate.Config{
 		Address: "",
 		Target:  target.URL,
 	}
-	mp, err := proxy.NewProxy(config, handler, mglog.NewMock())
+	mp, err := proxy.NewProxy(config, handler, smqlog.NewMock())
 	if err != nil {
 		return nil, nil
 	}
@@ -393,7 +393,7 @@ func TestReadMessages(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			authCall1 := authn.On("Authenticate", mock.Anything, tc.token).Return(mgauthn.Session{UserID: validID}, tc.authnErr)
+			authCall1 := authn.On("Authenticate", mock.Anything, tc.token).Return(smqauthn.Session{UserID: validID}, tc.authnErr)
 			authzCall := channelsGRPCClient.On("Authorize", mock.Anything, mock.Anything).Return(&grpcChannelsV1.AuthzRes{Authorized: true}, tc.authzErr)
 			repoCall := repo.On("ReadAll", channelID, mock.Anything).Return(tc.repoRes, tc.repoErr)
 			response, err := mgsdk.ReadMessages(tc.messagePageMeta, tc.chanName, tc.domainID, tc.token)

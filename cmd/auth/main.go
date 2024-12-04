@@ -13,27 +13,27 @@ import (
 	"time"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/auth"
-	api "github.com/absmach/magistrala/auth/api"
-	authgrpcapi "github.com/absmach/magistrala/auth/api/grpc/auth"
-	tokengrpcapi "github.com/absmach/magistrala/auth/api/grpc/token"
-	httpapi "github.com/absmach/magistrala/auth/api/http"
-	"github.com/absmach/magistrala/auth/jwt"
-	apostgres "github.com/absmach/magistrala/auth/postgres"
-	"github.com/absmach/magistrala/auth/tracing"
-	grpcAuthV1 "github.com/absmach/magistrala/internal/grpc/auth/v1"
-	grpcTokenV1 "github.com/absmach/magistrala/internal/grpc/token/v1"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/policies/spicedb"
-	"github.com/absmach/magistrala/pkg/postgres"
-	pgclient "github.com/absmach/magistrala/pkg/postgres"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	"github.com/absmach/magistrala/pkg/server"
-	grpcserver "github.com/absmach/magistrala/pkg/server/grpc"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/auth"
+	api "github.com/absmach/supermq/auth/api"
+	authgrpcapi "github.com/absmach/supermq/auth/api/grpc/auth"
+	tokengrpcapi "github.com/absmach/supermq/auth/api/grpc/token"
+	httpapi "github.com/absmach/supermq/auth/api/http"
+	"github.com/absmach/supermq/auth/jwt"
+	apostgres "github.com/absmach/supermq/auth/postgres"
+	"github.com/absmach/supermq/auth/tracing"
+	grpcAuthV1 "github.com/absmach/supermq/internal/grpc/auth/v1"
+	grpcTokenV1 "github.com/absmach/supermq/internal/grpc/token/v1"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/policies/spicedb"
+	"github.com/absmach/supermq/pkg/postgres"
+	pgclient "github.com/absmach/supermq/pkg/postgres"
+	"github.com/absmach/supermq/pkg/prometheus"
+	"github.com/absmach/supermq/pkg/server"
+	grpcserver "github.com/absmach/supermq/pkg/server/grpc"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
@@ -48,29 +48,29 @@ import (
 
 const (
 	svcName        = "auth"
-	envPrefixHTTP  = "MG_AUTH_HTTP_"
-	envPrefixGrpc  = "MG_AUTH_GRPC_"
-	envPrefixDB    = "MG_AUTH_DB_"
+	envPrefixHTTP  = "SMQ_AUTH_HTTP_"
+	envPrefixGrpc  = "SMQ_AUTH_GRPC_"
+	envPrefixDB    = "SMQ_AUTH_DB_"
 	defDB          = "auth"
 	defSvcHTTPPort = "8189"
 	defSvcGRPCPort = "8181"
 )
 
 type config struct {
-	LogLevel            string        `env:"MG_AUTH_LOG_LEVEL"               envDefault:"info"`
-	SecretKey           string        `env:"MG_AUTH_SECRET_KEY"              envDefault:"secret"`
-	JaegerURL           url.URL       `env:"MG_JAEGER_URL"                   envDefault:"http://localhost:4318/v1/traces"`
-	SendTelemetry       bool          `env:"MG_SEND_TELEMETRY"               envDefault:"true"`
-	InstanceID          string        `env:"MG_AUTH_ADAPTER_INSTANCE_ID"     envDefault:""`
-	AccessDuration      time.Duration `env:"MG_AUTH_ACCESS_TOKEN_DURATION"   envDefault:"1h"`
-	RefreshDuration     time.Duration `env:"MG_AUTH_REFRESH_TOKEN_DURATION"  envDefault:"24h"`
-	InvitationDuration  time.Duration `env:"MG_AUTH_INVITATION_DURATION"     envDefault:"168h"`
-	SpicedbHost         string        `env:"MG_SPICEDB_HOST"                 envDefault:"localhost"`
-	SpicedbPort         string        `env:"MG_SPICEDB_PORT"                 envDefault:"50051"`
-	SpicedbSchemaFile   string        `env:"MG_SPICEDB_SCHEMA_FILE"          envDefault:"./docker/spicedb/schema.zed"`
-	SpicedbPreSharedKey string        `env:"MG_SPICEDB_PRE_SHARED_KEY"       envDefault:"12345678"`
-	TraceRatio          float64       `env:"MG_JAEGER_TRACE_RATIO"           envDefault:"1.0"`
-	ESURL               string        `env:"MG_ES_URL"                       envDefault:"nats://localhost:4222"`
+	LogLevel            string        `env:"SMQ_AUTH_LOG_LEVEL"               envDefault:"info"`
+	SecretKey           string        `env:"SMQ_AUTH_SECRET_KEY"              envDefault:"secret"`
+	JaegerURL           url.URL       `env:"SMQ_JAEGER_URL"                   envDefault:"http://localhost:4318/v1/traces"`
+	SendTelemetry       bool          `env:"SMQ_SEND_TELEMETRY"               envDefault:"true"`
+	InstanceID          string        `env:"SMQ_AUTH_ADAPTER_INSTANCE_ID"     envDefault:""`
+	AccessDuration      time.Duration `env:"SMQ_AUTH_ACCESS_TOKEN_DURATION"   envDefault:"1h"`
+	RefreshDuration     time.Duration `env:"SMQ_AUTH_REFRESH_TOKEN_DURATION"  envDefault:"24h"`
+	InvitationDuration  time.Duration `env:"SMQ_AUTH_INVITATION_DURATION"     envDefault:"168h"`
+	SpicedbHost         string        `env:"SMQ_SPICEDB_HOST"                 envDefault:"localhost"`
+	SpicedbPort         string        `env:"SMQ_SPICEDB_PORT"                 envDefault:"50051"`
+	SpicedbSchemaFile   string        `env:"SMQ_SPICEDB_SCHEMA_FILE"          envDefault:"./docker/spicedb/schema.zed"`
+	SpicedbPreSharedKey string        `env:"SMQ_SPICEDB_PRE_SHARED_KEY"       envDefault:"12345678"`
+	TraceRatio          float64       `env:"SMQ_JAEGER_TRACE_RATIO"           envDefault:"1.0"`
+	ESURL               string        `env:"SMQ_ES_URL"                       envDefault:"nats://localhost:4222"`
 }
 
 func main() {
@@ -82,13 +82,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err.Error())
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -148,7 +148,7 @@ func main() {
 	gs := grpcserver.NewServer(ctx, cancel, svcName, grpcServerConfig, registerAuthServiceServer, logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 	g.Go(func() error {
@@ -164,7 +164,7 @@ func main() {
 	hs := httpserver.NewServer(ctx, cancel, svcName, httpServerConfig, httpapi.MakeHandler(svc, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 

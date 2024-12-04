@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/absmach/magistrala/auth"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
+	"github.com/absmach/supermq/auth"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
@@ -29,7 +29,7 @@ var (
 )
 
 const (
-	issuerName             = "magistrala.auth"
+	issuerName             = "supermq.auth"
 	tokenType              = "type"
 	userField              = "user"
 	oauthProviderField     = "oauth_provider"

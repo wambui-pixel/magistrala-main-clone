@@ -6,7 +6,7 @@ package cli
 import (
 	"encoding/json"
 
-	mgxsdk "github.com/absmach/magistrala/pkg/sdk/go"
+	smqsdk "github.com/absmach/supermq/pkg/sdk/go"
 	"github.com/spf13/cobra"
 )
 
@@ -16,14 +16,14 @@ var cmdDomains = []cobra.Command{
 		Short: "Create Domain",
 		Long: "Create Domain with provided name and alias. \n" +
 			"For example:\n" +
-			"\tmagistrala-cli domains create domain_1 domain_1_alias $TOKEN\n",
+			"\tsupermq-cli domains create domain_1 domain_1_alias $TOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			dom := mgxsdk.Domain{
+			dom := smqsdk.Domain{
 				Name:  args[0],
 				Alias: args[1],
 			}
@@ -49,7 +49,7 @@ var cmdDomains = []cobra.Command{
 				logErrorCmd(*cmd, err)
 				return
 			}
-			pageMetadata := mgxsdk.PageMetadata{
+			pageMetadata := smqsdk.PageMetadata{
 				Name:     Name,
 				Offset:   Offset,
 				Limit:    Limit,
@@ -89,7 +89,7 @@ var cmdDomains = []cobra.Command{
 				logErrorCmd(*cmd, err)
 				return
 			}
-			pageMetadata := mgxsdk.PageMetadata{
+			pageMetadata := smqsdk.PageMetadata{
 				Offset:   Offset,
 				Limit:    Limit,
 				Metadata: metadata,
@@ -110,14 +110,14 @@ var cmdDomains = []cobra.Command{
 		Short: "Update domains",
 		Long: "Updates domains name, alias and metadata \n" +
 			"Usage:\n" +
-			"\tmagistrala-cli domains update <domain_id> '{\"name\":\"new name\", \"alias\":\"new_alias\", \"metadata\":{\"key\": \"value\"}}' $TOKEN \n",
+			"\tsupermq-cli domains update <domain_id> '{\"name\":\"new name\", \"alias\":\"new_alias\", \"metadata\":{\"key\": \"value\"}}' $TOKEN \n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 4 && len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			var d mgxsdk.Domain
+			var d smqsdk.Domain
 
 			if err := json.Unmarshal([]byte(args[1]), &d); err != nil {
 				logErrorCmd(*cmd, err)
@@ -138,7 +138,7 @@ var cmdDomains = []cobra.Command{
 		Short: "Change domain status to enabled",
 		Long: "Change domain status to enabled\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli domains enable <domain_id> <token>\n",
+			"\tsupermq-cli domains enable <domain_id> <token>\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 2 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -157,7 +157,7 @@ var cmdDomains = []cobra.Command{
 		Short: "Change domain status to disabled",
 		Long: "Change domain status to disabled\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli domains disable <domain_id> <token>\n",
+			"\tsupermq-cli domains disable <domain_id> <token>\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 2 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -179,7 +179,7 @@ var domainAssignCmds = []cobra.Command{
 		Short: "Assign users",
 		Long: "Assign users to a domain\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli domains assign users <relation> '[\"<user_id_1>\", \"<user_id_2>\"]' <domain_id> $TOKEN\n",
+			"\tsupermq-cli domains assign users <relation> '[\"<user_id_1>\", \"<user_id_2>\"]' <domain_id> $TOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 4 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -190,7 +190,7 @@ var domainAssignCmds = []cobra.Command{
 				logErrorCmd(*cmd, err)
 				return
 			}
-			if err := sdk.AddUserToDomain(args[2], mgxsdk.UsersRelationRequest{Relation: args[0], UserIDs: userIDs}, args[3]); err != nil {
+			if err := sdk.AddUserToDomain(args[2], smqsdk.UsersRelationRequest{Relation: args[0], UserIDs: userIDs}, args[3]); err != nil {
 				logErrorCmd(*cmd, err)
 				return
 			}
@@ -205,7 +205,7 @@ var domainUnassignCmds = []cobra.Command{
 		Short: "Unassign users",
 		Long: "Unassign users from a domain\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli domains unassign users <user_id> <domain_id> $TOKEN\n",
+			"\tsupermq-cli domains unassign users <user_id> <domain_id> $TOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)

@@ -9,8 +9,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/ws"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/ws"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -43,7 +43,7 @@ func MakeHandler(ctx context.Context, svc ws.Service, l *slog.Logger, instanceID
 	mux.Get("/channels/{chanID}/messages", handshake(ctx, svc))
 	mux.Get("/channels/{chanID}/messages/*", handshake(ctx, svc))
 
-	mux.Get("/health", magistrala.Health(service, instanceID))
+	mux.Get("/health", supermq.Health(service, instanceID))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	return mux

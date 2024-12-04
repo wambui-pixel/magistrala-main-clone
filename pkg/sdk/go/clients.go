@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/errors"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 	unshareEndpoint     = "unshare"
 )
 
-// Client represents magistrala client.
+// Client represents supermq client.
 type Client struct {
 	ID          string                 `json:"id,omitempty"`
 	Name        string                 `json:"name,omitempty"`

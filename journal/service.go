@@ -6,18 +6,18 @@ package journal
 import (
 	"context"
 
-	"github.com/absmach/magistrala"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
+	"github.com/absmach/supermq"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
 )
 
 type service struct {
-	idProvider magistrala.IDProvider
+	idProvider supermq.IDProvider
 	repository Repository
 }
 
-func NewService(idp magistrala.IDProvider, repository Repository) Service {
+func NewService(idp supermq.IDProvider, repository Repository) Service {
 	return &service{
 		idProvider: idp,
 		repository: repository,
@@ -34,7 +34,7 @@ func (svc *service) Save(ctx context.Context, journal Journal) error {
 	return svc.repository.Save(ctx, journal)
 }
 
-func (svc *service) RetrieveAll(ctx context.Context, session mgauthn.Session, page Page) (JournalsPage, error) {
+func (svc *service) RetrieveAll(ctx context.Context, session smqauthn.Session, page Page) (JournalsPage, error) {
 	journalPage, err := svc.repository.RetrieveAll(ctx, page)
 	if err != nil {
 		return JournalsPage{}, errors.Wrap(svcerr.ErrViewEntity, err)

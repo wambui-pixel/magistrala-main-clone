@@ -15,27 +15,27 @@ import (
 	"os"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	adapter "github.com/absmach/magistrala/http"
-	"github.com/absmach/magistrala/http/api"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	mglog "github.com/absmach/magistrala/logger"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/authn/authsvc"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	jaegerclient "github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/messaging"
-	"github.com/absmach/magistrala/pkg/messaging/brokers"
-	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
-	"github.com/absmach/magistrala/pkg/messaging/handler"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	"github.com/absmach/magistrala/pkg/server"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/mgate"
 	mgatehttp "github.com/absmach/mgate/pkg/http"
 	"github.com/absmach/mgate/pkg/session"
+	"github.com/absmach/supermq"
+	adapter "github.com/absmach/supermq/http"
+	"github.com/absmach/supermq/http/api"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	smqlog "github.com/absmach/supermq/logger"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/authn/authsvc"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	jaegerclient "github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/messaging"
+	"github.com/absmach/supermq/pkg/messaging/brokers"
+	brokerstracing "github.com/absmach/supermq/pkg/messaging/brokers/tracing"
+	"github.com/absmach/supermq/pkg/messaging/handler"
+	"github.com/absmach/supermq/pkg/prometheus"
+	"github.com/absmach/supermq/pkg/server"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/caarlos0/env/v11"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
@@ -43,22 +43,22 @@ import (
 
 const (
 	svcName           = "http_adapter"
-	envPrefix         = "MG_HTTP_ADAPTER_"
-	envPrefixClients  = "MG_CLIENTS_AUTH_GRPC_"
-	envPrefixChannels = "MG_CHANNELS_GRPC_"
-	envPrefixAuth     = "MG_AUTH_GRPC_"
+	envPrefix         = "SMQ_HTTP_ADAPTER_"
+	envPrefixClients  = "SMQ_CLIENTS_AUTH_GRPC_"
+	envPrefixChannels = "SMQ_CHANNELS_GRPC_"
+	envPrefixAuth     = "SMQ_AUTH_GRPC_"
 	defSvcHTTPPort    = "80"
 	targetHTTPPort    = "81"
 	targetHTTPHost    = "http://localhost"
 )
 
 type config struct {
-	LogLevel      string  `env:"MG_HTTP_ADAPTER_LOG_LEVEL"   envDefault:"info"`
-	BrokerURL     string  `env:"MG_MESSAGE_BROKER_URL"       envDefault:"nats://localhost:4222"`
-	JaegerURL     url.URL `env:"MG_JAEGER_URL"               envDefault:"http://localhost:4318/v1/traces"`
-	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"           envDefault:"true"`
-	InstanceID    string  `env:"MG_HTTP_ADAPTER_INSTANCE_ID" envDefault:""`
-	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"       envDefault:"1.0"`
+	LogLevel      string  `env:"SMQ_HTTP_ADAPTER_LOG_LEVEL"   envDefault:"info"`
+	BrokerURL     string  `env:"SMQ_MESSAGE_BROKER_URL"       envDefault:"nats://localhost:4222"`
+	JaegerURL     url.URL `env:"SMQ_JAEGER_URL"               envDefault:"http://localhost:4318/v1/traces"`
+	SendTelemetry bool    `env:"SMQ_SEND_TELEMETRY"           envDefault:"true"`
+	InstanceID    string  `env:"SMQ_HTTP_ADAPTER_INSTANCE_ID" envDefault:""`
+	TraceRatio    float64 `env:"SMQ_JAEGER_TRACE_RATIO"       envDefault:"1.0"`
 }
 
 func main() {
@@ -70,13 +70,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -169,7 +169,7 @@ func main() {
 	hs := httpserver.NewServer(ctx, cancel, svcName, targetServerCfg, api.MakeHandler(logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 
@@ -190,7 +190,7 @@ func main() {
 	}
 }
 
-func newService(pub messaging.Publisher, authn mgauthn.Authentication, clients grpcClientsV1.ClientsServiceClient, channels grpcChannelsV1.ChannelsServiceClient, logger *slog.Logger, tracer trace.Tracer) session.Handler {
+func newService(pub messaging.Publisher, authn smqauthn.Authentication, clients grpcClientsV1.ClientsServiceClient, channels grpcChannelsV1.ChannelsServiceClient, logger *slog.Logger, tracer trace.Tracer) session.Handler {
 	svc := adapter.NewHandler(pub, authn, clients, channels, logger)
 	svc = handler.NewTracing(tracer, svc)
 	svc = handler.LoggingMiddleware(svc, logger)

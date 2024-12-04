@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/journal"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/journal"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -34,7 +34,7 @@ const (
 )
 
 // MakeHandler returns a HTTP API handler with health check and metrics.
-func MakeHandler(svc journal.Service, authn mgauthn.Authentication, logger *slog.Logger, svcName, instanceID string) http.Handler {
+func MakeHandler(svc journal.Service, authn smqauthn.Authentication, logger *slog.Logger, svcName, instanceID string) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, api.EncodeError)),
 	}
@@ -55,7 +55,7 @@ func MakeHandler(svc journal.Service, authn mgauthn.Authentication, logger *slog
 		opts...,
 	), "list__entity_journals").ServeHTTP)
 
-	mux.Get("/health", magistrala.Health(svcName, instanceID))
+	mux.Get("/health", supermq.Health(svcName, instanceID))
 	mux.Handle("/metrics", promhttp.Handler())
 
 	return mux

@@ -13,30 +13,30 @@ import (
 	"os"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/bootstrap"
-	"github.com/absmach/magistrala/bootstrap/api"
-	"github.com/absmach/magistrala/bootstrap/events/consumer"
-	"github.com/absmach/magistrala/bootstrap/events/producer"
-	"github.com/absmach/magistrala/bootstrap/middleware"
-	bootstrappg "github.com/absmach/magistrala/bootstrap/postgres"
-	"github.com/absmach/magistrala/bootstrap/tracing"
-	mglog "github.com/absmach/magistrala/logger"
-	authsvcAuthn "github.com/absmach/magistrala/pkg/authn/authsvc"
-	mgauthz "github.com/absmach/magistrala/pkg/authz"
-	authsvcAuthz "github.com/absmach/magistrala/pkg/authz/authsvc"
-	"github.com/absmach/magistrala/pkg/events"
-	"github.com/absmach/magistrala/pkg/events/store"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	"github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/pkg/policies/spicedb"
-	pgclient "github.com/absmach/magistrala/pkg/postgres"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
-	"github.com/absmach/magistrala/pkg/server"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/bootstrap"
+	"github.com/absmach/supermq/bootstrap/api"
+	"github.com/absmach/supermq/bootstrap/events/consumer"
+	"github.com/absmach/supermq/bootstrap/events/producer"
+	"github.com/absmach/supermq/bootstrap/middleware"
+	bootstrappg "github.com/absmach/supermq/bootstrap/postgres"
+	"github.com/absmach/supermq/bootstrap/tracing"
+	smqlog "github.com/absmach/supermq/logger"
+	authsvcAuthn "github.com/absmach/supermq/pkg/authn/authsvc"
+	smqauthz "github.com/absmach/supermq/pkg/authz"
+	authsvcAuthz "github.com/absmach/supermq/pkg/authz/authsvc"
+	"github.com/absmach/supermq/pkg/events"
+	"github.com/absmach/supermq/pkg/events/store"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	"github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/pkg/policies/spicedb"
+	pgclient "github.com/absmach/supermq/pkg/postgres"
+	"github.com/absmach/supermq/pkg/prometheus"
+	mgsdk "github.com/absmach/supermq/pkg/sdk/go"
+	"github.com/absmach/supermq/pkg/server"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
 	"github.com/caarlos0/env/v11"
@@ -49,29 +49,29 @@ import (
 
 const (
 	svcName        = "bootstrap"
-	envPrefixDB    = "MG_BOOTSTRAP_DB_"
-	envPrefixHTTP  = "MG_BOOTSTRAP_HTTP_"
-	envPrefixAuth  = "MG_AUTH_GRPC_"
+	envPrefixDB    = "SMQ_BOOTSTRAP_DB_"
+	envPrefixHTTP  = "SMQ_BOOTSTRAP_HTTP_"
+	envPrefixAuth  = "SMQ_AUTH_GRPC_"
 	defDB          = "bootstrap"
 	defSvcHTTPPort = "9013"
 
-	stream   = "events.magistrala.clients"
-	streamID = "magistrala.bootstrap"
+	stream   = "events.supermq.clients"
+	streamID = "supermq.bootstrap"
 )
 
 type config struct {
-	LogLevel            string  `env:"MG_BOOTSTRAP_LOG_LEVEL"        envDefault:"info"`
-	EncKey              string  `env:"MG_BOOTSTRAP_ENCRYPT_KEY"      envDefault:"12345678910111213141516171819202"`
-	ESConsumerName      string  `env:"MG_BOOTSTRAP_EVENT_CONSUMER"   envDefault:"bootstrap"`
-	ClientsURL          string  `env:"MG_CLIENTS_URL"                envDefault:"http://localhost:9000"`
-	JaegerURL           url.URL `env:"MG_JAEGER_URL"                 envDefault:"http://localhost:4318/v1/traces"`
-	SendTelemetry       bool    `env:"MG_SEND_TELEMETRY"             envDefault:"true"`
-	InstanceID          string  `env:"MG_BOOTSTRAP_INSTANCE_ID"      envDefault:""`
-	ESURL               string  `env:"MG_ES_URL"                     envDefault:"nats://localhost:4222"`
-	TraceRatio          float64 `env:"MG_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
-	SpicedbHost         string  `env:"MG_SPICEDB_HOST"               envDefault:"localhost"`
-	SpicedbPort         string  `env:"MG_SPICEDB_PORT"               envDefault:"50051"`
-	SpicedbPreSharedKey string  `env:"MG_SPICEDB_PRE_SHARED_KEY"     envDefault:"12345678"`
+	LogLevel            string  `env:"SMQ_BOOTSTRAP_LOG_LEVEL"        envDefault:"info"`
+	EncKey              string  `env:"SMQ_BOOTSTRAP_ENCRYPT_KEY"      envDefault:"12345678910111213141516171819202"`
+	ESConsumerName      string  `env:"SMQ_BOOTSTRAP_EVENT_CONSUMER"   envDefault:"bootstrap"`
+	ClientsURL          string  `env:"SMQ_CLIENTS_URL"                envDefault:"http://localhost:9000"`
+	JaegerURL           url.URL `env:"SMQ_JAEGER_URL"                 envDefault:"http://localhost:4318/v1/traces"`
+	SendTelemetry       bool    `env:"SMQ_SEND_TELEMETRY"             envDefault:"true"`
+	InstanceID          string  `env:"SMQ_BOOTSTRAP_INSTANCE_ID"      envDefault:""`
+	ESURL               string  `env:"SMQ_ES_URL"                     envDefault:"nats://localhost:4222"`
+	TraceRatio          float64 `env:"SMQ_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
+	SpicedbHost         string  `env:"SMQ_SPICEDB_HOST"               envDefault:"localhost"`
+	SpicedbPort         string  `env:"SMQ_SPICEDB_PORT"               envDefault:"50051"`
+	SpicedbPreSharedKey string  `env:"SMQ_SPICEDB_PRE_SHARED_KEY"     envDefault:"12345678"`
 }
 
 func main() {
@@ -83,13 +83,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -182,7 +182,7 @@ func main() {
 	hs := httpserver.NewServer(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, authn, bootstrap.NewConfigReader([]byte(cfg.EncKey)), logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 
@@ -199,7 +199,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, authz mgauthz.Authorization, policySvc policies.Service, db *sqlx.DB, tracer trace.Tracer, logger *slog.Logger, cfg config, dbConfig pgclient.Config) (bootstrap.Service, error) {
+func newService(ctx context.Context, authz smqauthz.Authorization, policySvc policies.Service, db *sqlx.DB, tracer trace.Tracer, logger *slog.Logger, cfg config, dbConfig pgclient.Config) (bootstrap.Service, error) {
 	database := pgclient.NewDatabase(db, dbConfig, tracer)
 
 	repoConfig := bootstrappg.NewConfigRepository(database, logger)

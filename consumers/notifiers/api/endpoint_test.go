@@ -13,14 +13,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/absmach/magistrala/consumers/notifiers"
-	httpapi "github.com/absmach/magistrala/consumers/notifiers/api"
-	"github.com/absmach/magistrala/consumers/notifiers/mocks"
-	"github.com/absmach/magistrala/internal/testsutil"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq/consumers/notifiers"
+	httpapi "github.com/absmach/supermq/consumers/notifiers/api"
+	"github.com/absmach/supermq/consumers/notifiers/mocks"
+	"github.com/absmach/supermq/internal/testsutil"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/apiutil"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -68,7 +68,7 @@ func (tr testRequest) make() (*http.Response, error) {
 }
 
 func newServer() (*httptest.Server, *mocks.Service) {
-	logger := mglog.NewMock()
+	logger := smqlog.NewMock()
 	svc := new(mocks.Service)
 	mux := httpapi.MakeHandler(svc, logger, instanceID)
 	return httptest.NewServer(mux), svc

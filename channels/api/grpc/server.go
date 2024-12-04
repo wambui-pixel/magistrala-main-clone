@@ -6,14 +6,14 @@ package grpc
 import (
 	"context"
 
-	mgauth "github.com/absmach/magistrala/auth"
-	channels "github.com/absmach/magistrala/channels/private"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcCommonV1 "github.com/absmach/magistrala/internal/grpc/common/v1"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/connections"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
+	smqauth "github.com/absmach/supermq/auth"
+	channels "github.com/absmach/supermq/channels/private"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcCommonV1 "github.com/absmach/supermq/internal/grpc/common/v1"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/connections"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -167,7 +167,7 @@ func encodeError(err error) error {
 		err == apiutil.ErrMalformedPolicyAct:
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Contains(err, svcerr.ErrAuthentication),
-		errors.Contains(err, mgauth.ErrKeyExpired),
+		errors.Contains(err, smqauth.ErrKeyExpired),
 		err == apiutil.ErrMissingEmail,
 		err == apiutil.ErrBearerToken:
 		return status.Error(codes.Unauthenticated, err.Error())

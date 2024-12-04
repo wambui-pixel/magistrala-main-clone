@@ -13,32 +13,32 @@ import (
 	"time"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/domains"
-	domainsSvc "github.com/absmach/magistrala/domains"
-	domainsgrpcapi "github.com/absmach/magistrala/domains/api/grpc"
-	httpapi "github.com/absmach/magistrala/domains/api/http"
-	"github.com/absmach/magistrala/domains/events"
-	dmw "github.com/absmach/magistrala/domains/middleware"
-	dpostgres "github.com/absmach/magistrala/domains/postgres"
-	dtracing "github.com/absmach/magistrala/domains/tracing"
-	grpcDomainsV1 "github.com/absmach/magistrala/internal/grpc/domains/v1"
-	mglog "github.com/absmach/magistrala/logger"
-	authsvcAuthn "github.com/absmach/magistrala/pkg/authn/authsvc"
-	"github.com/absmach/magistrala/pkg/authz"
-	authsvcAuthz "github.com/absmach/magistrala/pkg/authz/authsvc"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	"github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/pkg/policies/spicedb"
-	"github.com/absmach/magistrala/pkg/postgres"
-	pgclient "github.com/absmach/magistrala/pkg/postgres"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	"github.com/absmach/magistrala/pkg/server"
-	grpcserver "github.com/absmach/magistrala/pkg/server/grpc"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/sid"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/domains"
+	domainsSvc "github.com/absmach/supermq/domains"
+	domainsgrpcapi "github.com/absmach/supermq/domains/api/grpc"
+	httpapi "github.com/absmach/supermq/domains/api/http"
+	"github.com/absmach/supermq/domains/events"
+	dmw "github.com/absmach/supermq/domains/middleware"
+	dpostgres "github.com/absmach/supermq/domains/postgres"
+	dtracing "github.com/absmach/supermq/domains/tracing"
+	grpcDomainsV1 "github.com/absmach/supermq/internal/grpc/domains/v1"
+	smqlog "github.com/absmach/supermq/logger"
+	authsvcAuthn "github.com/absmach/supermq/pkg/authn/authsvc"
+	"github.com/absmach/supermq/pkg/authz"
+	authsvcAuthz "github.com/absmach/supermq/pkg/authz/authsvc"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	"github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/pkg/policies/spicedb"
+	"github.com/absmach/supermq/pkg/postgres"
+	pgclient "github.com/absmach/supermq/pkg/postgres"
+	"github.com/absmach/supermq/pkg/prometheus"
+	"github.com/absmach/supermq/pkg/server"
+	grpcserver "github.com/absmach/supermq/pkg/server/grpc"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/sid"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
 	"github.com/caarlos0/env/v11"
@@ -53,25 +53,25 @@ import (
 
 const (
 	svcName        = "domains"
-	envPrefixHTTP  = "MG_DOMAINS_HTTP_"
-	envPrefixGrpc  = "MG_DOMAINS_GRPC_"
-	envPrefixDB    = "MG_DOMAINS_DB_"
-	envPrefixAuth  = "MG_AUTH_GRPC_"
+	envPrefixHTTP  = "SMQ_DOMAINS_HTTP_"
+	envPrefixGrpc  = "SMQ_DOMAINS_GRPC_"
+	envPrefixDB    = "SMQ_DOMAINS_DB_"
+	envPrefixAuth  = "SMQ_AUTH_GRPC_"
 	defDB          = "domains"
 	defSvcHTTPPort = "9004"
 	defSvcGRPCPort = "7004"
 )
 
 type config struct {
-	LogLevel            string  `env:"MG_DOMAINS_LOG_LEVEL"            envDefault:"info"`
-	JaegerURL           url.URL `env:"MG_JAEGER_URL"                   envDefault:"http://localhost:4318/v1/traces"`
-	SendTelemetry       bool    `env:"MG_SEND_TELEMETRY"               envDefault:"true"`
-	InstanceID          string  `env:"MG_DOMAINS_INSTANCE_ID"  envDefault:""`
-	SpicedbHost         string  `env:"MG_SPICEDB_HOST"                 envDefault:"localhost"`
-	SpicedbPort         string  `env:"MG_SPICEDB_PORT"                 envDefault:"50051"`
-	SpicedbPreSharedKey string  `env:"MG_SPICEDB_PRE_SHARED_KEY"       envDefault:"12345678"`
-	TraceRatio          float64 `env:"MG_JAEGER_TRACE_RATIO"           envDefault:"1.0"`
-	ESURL               string  `env:"MG_ES_URL"                       envDefault:"nats://localhost:4222"`
+	LogLevel            string  `env:"SMQ_DOMAINS_LOG_LEVEL"            envDefault:"info"`
+	JaegerURL           url.URL `env:"SMQ_JAEGER_URL"                   envDefault:"http://localhost:4318/v1/traces"`
+	SendTelemetry       bool    `env:"SMQ_SEND_TELEMETRY"               envDefault:"true"`
+	InstanceID          string  `env:"SMQ_DOMAINS_INSTANCE_ID"  envDefault:""`
+	SpicedbHost         string  `env:"SMQ_SPICEDB_HOST"                 envDefault:"localhost"`
+	SpicedbPort         string  `env:"SMQ_SPICEDB_PORT"                 envDefault:"50051"`
+	SpicedbPreSharedKey string  `env:"SMQ_SPICEDB_PRE_SHARED_KEY"       envDefault:"12345678"`
+	TraceRatio          float64 `env:"SMQ_JAEGER_TRACE_RATIO"           envDefault:"1.0"`
+	ESURL               string  `env:"SMQ_ES_URL"                       envDefault:"nats://localhost:4222"`
 }
 
 func main() {
@@ -83,13 +83,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err.Error())
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -205,7 +205,7 @@ func main() {
 	})
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 

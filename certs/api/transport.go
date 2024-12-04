@@ -9,12 +9,12 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/certs"
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/certs"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -32,7 +32,7 @@ const (
 )
 
 // MakeHandler returns a HTTP handler for API endpoints.
-func MakeHandler(svc certs.Service, authn mgauthn.Authentication, logger *slog.Logger, instanceID string) http.Handler {
+func MakeHandler(svc certs.Service, authn smqauthn.Authentication, logger *slog.Logger, instanceID string) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, api.EncodeError)),
 	}
@@ -71,7 +71,7 @@ func MakeHandler(svc certs.Service, authn mgauthn.Authentication, logger *slog.L
 		})
 	})
 	r.Handle("/metrics", promhttp.Handler())
-	r.Get("/health", magistrala.Health("certs", instanceID))
+	r.Get("/health", supermq.Health("certs", instanceID))
 
 	return r
 }

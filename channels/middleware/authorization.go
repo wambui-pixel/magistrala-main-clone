@@ -7,16 +7,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/absmach/magistrala/channels"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/authz"
-	mgauthz "github.com/absmach/magistrala/pkg/authz"
-	"github.com/absmach/magistrala/pkg/connections"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
-	rmMW "github.com/absmach/magistrala/pkg/roles/rolemanager/middleware"
-	"github.com/absmach/magistrala/pkg/svcutil"
+	"github.com/absmach/supermq/channels"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/authz"
+	smqauthz "github.com/absmach/supermq/pkg/authz"
+	"github.com/absmach/supermq/pkg/connections"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
+	rmMW "github.com/absmach/supermq/pkg/roles/rolemanager/middleware"
+	"github.com/absmach/supermq/pkg/svcutil"
 )
 
 var (
@@ -42,14 +42,14 @@ var _ channels.Service = (*authorizationMiddleware)(nil)
 type authorizationMiddleware struct {
 	svc    channels.Service
 	repo   channels.Repository
-	authz  mgauthz.Authorization
+	authz  smqauthz.Authorization
 	opp    svcutil.OperationPerm
 	extOpp svcutil.ExternalOperationPerm
 	rmMW.RoleManagerAuthorizationMiddleware
 }
 
 // AuthorizationMiddleware adds authorization to the channels service.
-func AuthorizationMiddleware(svc channels.Service, repo channels.Repository, authz mgauthz.Authorization, channelsOpPerm, rolesOpPerm map[svcutil.Operation]svcutil.Permission, extOpPerm map[svcutil.ExternalOperation]svcutil.Permission) (channels.Service, error) {
+func AuthorizationMiddleware(svc channels.Service, repo channels.Repository, authz smqauthz.Authorization, channelsOpPerm, rolesOpPerm map[svcutil.Operation]svcutil.Permission, extOpPerm map[svcutil.ExternalOperation]svcutil.Permission) (channels.Service, error) {
 	opp := channels.NewOperationPerm()
 	if err := opp.AddOperationPermissionMap(channelsOpPerm); err != nil {
 		return nil, err
@@ -335,12 +335,12 @@ func (am *authorizationMiddleware) extAuthorize(ctx context.Context, extOp svcut
 }
 
 func (am *authorizationMiddleware) checkSuperAdmin(ctx context.Context, userID string) error {
-	if err := am.authz.Authorize(ctx, mgauthz.PolicyReq{
+	if err := am.authz.Authorize(ctx, smqauthz.PolicyReq{
 		SubjectType: policies.UserType,
 		Subject:     userID,
 		Permission:  policies.AdminPermission,
 		ObjectType:  policies.PlatformType,
-		Object:      policies.MagistralaObject,
+		Object:      policies.SuperMQObject,
 	}); err != nil {
 		return err
 	}

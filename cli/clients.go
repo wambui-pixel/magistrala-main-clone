@@ -6,8 +6,8 @@ package cli
 import (
 	"encoding/json"
 
-	"github.com/absmach/magistrala/clients"
-	mgxsdk "github.com/absmach/magistrala/pkg/sdk/go"
+	"github.com/absmach/supermq/clients"
+	smqsdk "github.com/absmach/supermq/pkg/sdk/go"
 	"github.com/spf13/cobra"
 )
 
@@ -17,14 +17,14 @@ var cmdClients = []cobra.Command{
 		Short: "Create client",
 		Long: "Creates new client with provided name and metadata\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients create '{\"name\":\"new client\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients create '{\"name\":\"new client\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			var client mgxsdk.Client
+			var client smqsdk.Client
 			if err := json.Unmarshal([]byte(args[0]), &client); err != nil {
 				logErrorCmd(*cmd, err)
 				return
@@ -44,9 +44,9 @@ var cmdClients = []cobra.Command{
 		Short: "Get clients",
 		Long: "Get all clients or get client by id. Clients can be filtered by name or metadata\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients get all $DOMAINID $USERTOKEN - lists all clients\n" +
-			"\tmagistrala-cli clients get all $DOMAINID $USERTOKEN --offset=10 --limit=10 - lists all clients with offset and limit\n" +
-			"\tmagistrala-cli clients get <client_id> $DOMAINID $USERTOKEN - shows client with provided <client_id>\n",
+			"\tsupermq-cli clients get all $DOMAINID $USERTOKEN - lists all clients\n" +
+			"\tsupermq-cli clients get all $DOMAINID $USERTOKEN --offset=10 --limit=10 - lists all clients with offset and limit\n" +
+			"\tsupermq-cli clients get <client_id> $DOMAINID $USERTOKEN - shows client with provided <client_id>\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -57,7 +57,7 @@ var cmdClients = []cobra.Command{
 				logErrorCmd(*cmd, err)
 				return
 			}
-			pageMetadata := mgxsdk.PageMetadata{
+			pageMetadata := smqsdk.PageMetadata{
 				Name:     Name,
 				Offset:   Offset,
 				Limit:    Limit,
@@ -86,7 +86,7 @@ var cmdClients = []cobra.Command{
 		Short: "Delete client",
 		Long: "Delete client by id\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients delete <client_id> $DOMAINID $USERTOKEN - delete client with <client_id>\n",
+			"\tsupermq-cli clients delete <client_id> $DOMAINID $USERTOKEN - delete client with <client_id>\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -104,16 +104,16 @@ var cmdClients = []cobra.Command{
 		Short: "Update client",
 		Long: "Updates client with provided id, name and metadata, or updates client's tags, secret\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli client update <client_id> '{\"name\":\"new name\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n" +
-			"\tmagistrala-cli client update tags <client_id> '{\"tag1\":\"value1\", \"tag2\":\"value2\"}' $DOMAINID $USERTOKEN\n" +
-			"\tmagistrala-cli client update secret <client_id> <newsecret> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli client update <client_id> '{\"name\":\"new name\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n" +
+			"\tsupermq-cli client update tags <client_id> '{\"tag1\":\"value1\", \"tag2\":\"value2\"}' $DOMAINID $USERTOKEN\n" +
+			"\tsupermq-cli client update secret <client_id> <newsecret> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 5 && len(args) != 4 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			var client mgxsdk.Client
+			var client smqsdk.Client
 			if args[0] == "tags" {
 				if err := json.Unmarshal([]byte(args[2]), &client.Tags); err != nil {
 					logErrorCmd(*cmd, err)
@@ -160,7 +160,7 @@ var cmdClients = []cobra.Command{
 		Short: "Change client status to enabled",
 		Long: "Change client status to enabled\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients enable <client_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients enable <client_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -181,7 +181,7 @@ var cmdClients = []cobra.Command{
 		Short: "Change client status to disabled",
 		Long: "Change client status to disabled\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients disable <client_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients disable <client_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -202,13 +202,13 @@ var cmdClients = []cobra.Command{
 		Short: "Share client with a user",
 		Long: "Share client with a user\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients share <client_id> <user_id> <relation> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients share <client_id> <user_id> <relation> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 5 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			req := mgxsdk.UsersRelationRequest{
+			req := smqsdk.UsersRelationRequest{
 				Relation: args[2],
 				UserIDs:  []string{args[1]},
 			}
@@ -226,13 +226,13 @@ var cmdClients = []cobra.Command{
 		Short: "Unshare client with a user",
 		Long: "Unshare client with a user\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients share  <client_id> <user_id> <relation> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients share  <client_id> <user_id> <relation> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 5 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			req := mgxsdk.UsersRelationRequest{
+			req := smqsdk.UsersRelationRequest{
 				Relation: args[2],
 				UserIDs:  []string{args[1]},
 			}
@@ -250,14 +250,14 @@ var cmdClients = []cobra.Command{
 		Short: "Connect client",
 		Long: "Connect client to the channel\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients connect <client_id> <channel_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients connect <client_id> <channel_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 4 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			connIDs := mgxsdk.Connection{
+			connIDs := smqsdk.Connection{
 				ChannelIDs: []string{args[1]},
 				ClientIDs:  []string{args[0]},
 			}
@@ -274,14 +274,14 @@ var cmdClients = []cobra.Command{
 		Short: "Disconnect client",
 		Long: "Disconnect client to the channel\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients disconnect <client_id> <channel_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients disconnect <client_id> <channel_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 4 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			connIDs := mgxsdk.Connection{
+			connIDs := smqsdk.Connection{
 				ClientIDs:  []string{args[0]},
 				ChannelIDs: []string{args[1]},
 			}
@@ -298,13 +298,13 @@ var cmdClients = []cobra.Command{
 		Short: "Connected list",
 		Long: "List of Channels connected to Client\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli connections <client_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli connections <client_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			pm := mgxsdk.PageMetadata{
+			pm := smqsdk.PageMetadata{
 				Offset: Offset,
 				Limit:  Limit,
 			}
@@ -322,13 +322,13 @@ var cmdClients = []cobra.Command{
 		Short: "List users",
 		Long: "List users of a client\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli clients users <client_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli clients users <client_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			pm := mgxsdk.PageMetadata{
+			pm := smqsdk.PageMetadata{
 				Offset: Offset,
 				Limit:  Limit,
 			}

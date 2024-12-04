@@ -6,17 +6,17 @@ package api
 import (
 	"net/http"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/invitations"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/invitations"
 )
 
 var (
-	_ magistrala.Response = (*sendInvitationRes)(nil)
-	_ magistrala.Response = (*viewInvitationRes)(nil)
-	_ magistrala.Response = (*listInvitationsRes)(nil)
-	_ magistrala.Response = (*acceptInvitationRes)(nil)
-	_ magistrala.Response = (*rejectInvitationRes)(nil)
-	_ magistrala.Response = (*deleteInvitationRes)(nil)
+	_ supermq.Response = (*sendInvitationRes)(nil)
+	_ supermq.Response = (*viewInvitationRes)(nil)
+	_ supermq.Response = (*listInvitationsRes)(nil)
+	_ supermq.Response = (*acceptInvitationRes)(nil)
+	_ supermq.Response = (*rejectInvitationRes)(nil)
+	_ supermq.Response = (*deleteInvitationRes)(nil)
 )
 
 type sendInvitationRes struct {

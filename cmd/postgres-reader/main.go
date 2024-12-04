@@ -12,18 +12,18 @@ import (
 	"os"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/authn/authsvc"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	pgclient "github.com/absmach/magistrala/pkg/postgres"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	"github.com/absmach/magistrala/pkg/server"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
-	"github.com/absmach/magistrala/readers"
-	"github.com/absmach/magistrala/readers/api"
-	"github.com/absmach/magistrala/readers/postgres"
+	"github.com/absmach/supermq"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/authn/authsvc"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	pgclient "github.com/absmach/supermq/pkg/postgres"
+	"github.com/absmach/supermq/pkg/prometheus"
+	"github.com/absmach/supermq/pkg/server"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
+	"github.com/absmach/supermq/readers"
+	"github.com/absmach/supermq/readers/api"
+	"github.com/absmach/supermq/readers/postgres"
 	"github.com/caarlos0/env/v11"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/sync/errgroup"
@@ -31,19 +31,19 @@ import (
 
 const (
 	svcName           = "postgres-reader"
-	envPrefixDB       = "MG_POSTGRES_"
-	envPrefixHTTP     = "MG_POSTGRES_READER_HTTP_"
-	envPrefixAuth     = "MG_AUTH_GRPC_"
-	envPrefixClients  = "MG_CLIENTS_AUTH_GRPC_"
-	envPrefixChannels = "MG_CHANNELS_GRPC_"
-	defDB             = "magistrala"
+	envPrefixDB       = "SMQ_POSTGRES_"
+	envPrefixHTTP     = "SMQ_POSTGRES_READER_HTTP_"
+	envPrefixAuth     = "SMQ_AUTH_GRPC_"
+	envPrefixClients  = "SMQ_CLIENTS_AUTH_GRPC_"
+	envPrefixChannels = "SMQ_CHANNELS_GRPC_"
+	defDB             = "supermq"
 	defSvcHTTPPort    = "9009"
 )
 
 type config struct {
-	LogLevel      string `env:"MG_POSTGRES_READER_LOG_LEVEL"     envDefault:"info"`
-	SendTelemetry bool   `env:"MG_SEND_TELEMETRY"                envDefault:"true"`
-	InstanceID    string `env:"MG_POSTGRES_READER_INSTANCE_ID"   envDefault:""`
+	LogLevel      string `env:"SMQ_POSTGRES_READER_LOG_LEVEL"     envDefault:"info"`
+	SendTelemetry bool   `env:"SMQ_SEND_TELEMETRY"                envDefault:"true"`
+	InstanceID    string `env:"SMQ_POSTGRES_READER_INSTANCE_ID"   envDefault:""`
 }
 
 func main() {
@@ -55,13 +55,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -144,7 +144,7 @@ func main() {
 	hs := httpserver.NewServer(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, authn, clientsClient, channelsClient, svcName, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/absmach/magistrala/pkg/events"
+	"github.com/absmach/supermq/pkg/events"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,7 +18,7 @@ const (
 	eventsPrefix = "events."
 	eventCount   = 100
 	exists       = "BUSYGROUP Consumer Group name already exists"
-	group        = "magistrala"
+	group        = "supermq"
 )
 
 var _ events.Subscriber = (*subEventStore)(nil)

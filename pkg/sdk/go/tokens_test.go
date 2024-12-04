@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"testing"
 
-	mgauth "github.com/absmach/magistrala/auth"
-	grpcTokenV1 "github.com/absmach/magistrala/internal/grpc/token/v1"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	sdk "github.com/absmach/magistrala/pkg/sdk/go"
+	smqauth "github.com/absmach/supermq/auth"
+	grpcTokenV1 "github.com/absmach/supermq/internal/grpc/token/v1"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	sdk "github.com/absmach/supermq/pkg/sdk/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -47,7 +47,7 @@ func TestIssueToken(t *testing.T) {
 			svcRes: &grpcTokenV1.Token{
 				AccessToken:  token.AccessToken,
 				RefreshToken: &token.RefreshToken,
-				AccessType:   mgauth.AccessKey.String(),
+				AccessType:   smqauth.AccessKey.String(),
 			},
 			svcErr:   nil,
 			response: token,
@@ -161,13 +161,13 @@ func TestRefreshToken(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
-			authCall := auth.On("Authenticate", mock.Anything, mock.Anything).Return(mgauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID}, tc.identifyErr)
-			svcCall := svc.On("RefreshToken", mock.Anything, mgauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID}, tc.token).Return(tc.svcRes, tc.svcErr)
+			authCall := auth.On("Authenticate", mock.Anything, mock.Anything).Return(smqauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID}, tc.identifyErr)
+			svcCall := svc.On("RefreshToken", mock.Anything, smqauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID}, tc.token).Return(tc.svcRes, tc.svcErr)
 			resp, err := mgsdk.RefreshToken(tc.token)
 			assert.Equal(t, tc.err, err)
 			assert.Equal(t, tc.response, resp)
 			if tc.err == nil {
-				ok := svcCall.Parent.AssertCalled(t, "RefreshToken", mock.Anything, mgauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID}, tc.token)
+				ok := svcCall.Parent.AssertCalled(t, "RefreshToken", mock.Anything, smqauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID}, tc.token)
 				assert.True(t, ok)
 			}
 			svcCall.Unset()
@@ -180,6 +180,6 @@ func generateTestToken() sdk.Token {
 	return sdk.Token{
 		AccessToken:  "access_token",
 		RefreshToken: "refresh_token",
-		AccessType:   mgauth.AccessKey.String(),
+		AccessType:   smqauth.AccessKey.String(),
 	}
 }

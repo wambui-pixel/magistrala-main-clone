@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq/pkg/errors"
 	"moul.io/http2curl"
 )
 
@@ -136,11 +136,11 @@ type Credentials struct {
 	Secret   string `json:"secret,omitempty"`   // password or token
 }
 
-// SDK contains Magistrala API.
+// SDK contains SuperMQ API.
 //
 //go:generate mockery --name SDK --output=../mocks --filename sdk.go --quiet --note "Copyright (c) Abstract Machines"
 type SDK interface {
-	// CreateUser registers magistrala user.
+	// CreateUser registers supermq user.
 	//
 	// example:
 	//  user := sdk.User{
@@ -1254,7 +1254,7 @@ type Config struct {
 	CurlFlag        bool
 }
 
-// NewSDK returns new magistrala SDK instance.
+// NewSDK returns new supermq SDK instance.
 func NewSDK(conf Config) SDK {
 	return &mgSDK{
 		bootstrapURL:   conf.BootstrapURL,

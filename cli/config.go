@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/absmach/magistrala/pkg/errors"
-	mgxsdk "github.com/absmach/magistrala/pkg/sdk/go"
+	"github.com/absmach/supermq/pkg/errors"
+	smqsdk "github.com/absmach/supermq/pkg/sdk/go"
 	"github.com/pelletier/go-toml"
 	"github.com/spf13/cobra"
 )
@@ -96,7 +96,7 @@ func read(file string) (config, error) {
 }
 
 // ParseConfig - parses the config file.
-func ParseConfig(sdkConf mgxsdk.Config) (mgxsdk.Config, error) {
+func ParseConfig(sdkConf smqsdk.Config) (smqsdk.Config, error) {
 	if ConfigPath == "" {
 		ConfigPath = defaultConfigPath
 	}

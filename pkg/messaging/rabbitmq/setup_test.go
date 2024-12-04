@@ -12,9 +12,9 @@ import (
 	"syscall"
 	"testing"
 
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/messaging"
-	"github.com/absmach/magistrala/pkg/messaging/rabbitmq"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/messaging"
+	"github.com/absmach/supermq/pkg/messaging/rabbitmq"
 	"github.com/ory/dockertest/v3"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/stretchr/testify/assert"
@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	logger, err = mglog.New(os.Stdout, "debug")
+	logger, err = smqlog.New(os.Stdout, "debug")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -98,7 +98,7 @@ func rabbitHandler(deliveries <-chan amqp.Delivery, h messaging.MessageHandler) 
 			return
 		}
 		if err := h.Handle(&msg); err != nil {
-			logger.Warn(fmt.Sprintf("Failed to handle Magistrala message: %s", err))
+			logger.Warn(fmt.Sprintf("Failed to handle SuperMQ message: %s", err))
 			return
 		}
 	}

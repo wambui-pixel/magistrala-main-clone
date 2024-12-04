@@ -9,13 +9,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/errors"
 )
 
 const channelsEndpoint = "channels"
 
-// Channel represents magistrala channel.
+// Channel represents supermq channel.
 type Channel struct {
 	ID          string     `json:"id,omitempty"`
 	DomainID    string     `json:"domain_id,omitempty"`

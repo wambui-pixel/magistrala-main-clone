@@ -8,17 +8,17 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/bootstrap/api"
-	bmocks "github.com/absmach/magistrala/bootstrap/mocks"
-	chmocks "github.com/absmach/magistrala/channels/mocks"
-	climocks "github.com/absmach/magistrala/clients/mocks"
-	mglog "github.com/absmach/magistrala/logger"
-	authnmocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	"github.com/absmach/magistrala/pkg/errors"
-	sdk "github.com/absmach/magistrala/pkg/sdk/go"
-	readersapi "github.com/absmach/magistrala/readers/api"
-	readersmocks "github.com/absmach/magistrala/readers/mocks"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/bootstrap/api"
+	bmocks "github.com/absmach/supermq/bootstrap/mocks"
+	chmocks "github.com/absmach/supermq/channels/mocks"
+	climocks "github.com/absmach/supermq/clients/mocks"
+	smqlog "github.com/absmach/supermq/logger"
+	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
+	"github.com/absmach/supermq/pkg/errors"
+	sdk "github.com/absmach/supermq/pkg/sdk/go"
+	readersapi "github.com/absmach/supermq/readers/api"
+	readersmocks "github.com/absmach/supermq/readers/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -116,9 +116,9 @@ func TestHealth(t *testing.T) {
 			assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))
 			assert.Equal(t, tc.status, h.Status, fmt.Sprintf("%s: expected %s status, got %s", tc.desc, tc.status, h.Status))
 			assert.Equal(t, tc.empty, h.Version == "", fmt.Sprintf("%s: expected non-empty version", tc.desc))
-			assert.Equal(t, magistrala.Commit, h.Commit, fmt.Sprintf("%s: expected non-empty commit", tc.desc))
+			assert.Equal(t, supermq.Commit, h.Commit, fmt.Sprintf("%s: expected non-empty commit", tc.desc))
 			assert.Equal(t, tc.description, h.Description, fmt.Sprintf("%s: expected proper description, got %s", tc.desc, h.Description))
-			assert.Equal(t, magistrala.BuildTime, h.BuildTime, fmt.Sprintf("%s: expected default epoch date, got %s", tc.desc, h.BuildTime))
+			assert.Equal(t, supermq.BuildTime, h.BuildTime, fmt.Sprintf("%s: expected default epoch date, got %s", tc.desc, h.BuildTime))
 		})
 	}
 }
@@ -126,7 +126,7 @@ func TestHealth(t *testing.T) {
 func setupMinimalBootstrap() *httptest.Server {
 	bsvc := new(bmocks.Service)
 	reader := new(bmocks.ConfigReader)
-	logger := mglog.NewMock()
+	logger := smqlog.NewMock()
 	authn := new(authnmocks.Authentication)
 	mux := api.MakeHandler(bsvc, authn, reader, logger, "")
 

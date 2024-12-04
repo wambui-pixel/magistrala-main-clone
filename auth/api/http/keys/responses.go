@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/auth"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/auth"
 )
 
 var (
-	_ magistrala.Response = (*issueKeyRes)(nil)
-	_ magistrala.Response = (*revokeKeyRes)(nil)
+	_ supermq.Response = (*issueKeyRes)(nil)
+	_ supermq.Response = (*revokeKeyRes)(nil)
 )
 
 type issueKeyRes struct {

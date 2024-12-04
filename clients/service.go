@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"time"
 
-	mg "github.com/absmach/magistrala"
-	mgauth "github.com/absmach/magistrala/auth"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcCommonV1 "github.com/absmach/magistrala/internal/grpc/common/v1"
-	grpcGroupsV1 "github.com/absmach/magistrala/internal/grpc/groups/v1"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/pkg/roles"
+	smq "github.com/absmach/supermq"
+	smqauth "github.com/absmach/supermq/auth"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcCommonV1 "github.com/absmach/supermq/internal/grpc/common/v1"
+	grpcGroupsV1 "github.com/absmach/supermq/internal/grpc/groups/v1"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/pkg/roles"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -33,12 +33,12 @@ type service struct {
 	channels   grpcChannelsV1.ChannelsServiceClient
 	groups     grpcGroupsV1.GroupsServiceClient
 	cache      Cache
-	idProvider mg.IDProvider
+	idProvider smq.IDProvider
 	roles.ProvisionManageService
 }
 
 // NewService returns a new Clients service implementation.
-func NewService(repo Repository, policy policies.Service, cache Cache, channels grpcChannelsV1.ChannelsServiceClient, groups grpcGroupsV1.GroupsServiceClient, idProvider mg.IDProvider, sIDProvider mg.IDProvider) (Service, error) {
+func NewService(repo Repository, policy policies.Service, cache Cache, channels grpcChannelsV1.ChannelsServiceClient, groups grpcGroupsV1.GroupsServiceClient, idProvider smq.IDProvider, sIDProvider smq.IDProvider) (Service, error) {
 	rpms, err := roles.NewProvisionManageService(policies.ClientType, repo, policy, sIDProvider, AvailableActions(), BuiltInRoles())
 	if err != nil {
 		return service{}, err
@@ -135,7 +135,7 @@ func (svc service) ListClients(ctx context.Context, session authn.Session, reqUs
 	var err error
 	switch {
 	case (reqUserID != "" && reqUserID != session.UserID):
-		rtids, err := svc.listClientIDs(ctx, mgauth.EncodeDomainUserID(session.DomainID, reqUserID), pm.Permission)
+		rtids, err := svc.listClientIDs(ctx, smqauth.EncodeDomainUserID(session.DomainID, reqUserID), pm.Permission)
 		if err != nil {
 			return ClientsPage{}, errors.Wrap(svcerr.ErrNotFound, err)
 		}

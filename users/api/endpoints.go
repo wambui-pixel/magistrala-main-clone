@@ -6,12 +6,12 @@ package api
 import (
 	"context"
 
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/users"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/users"
 	"github.com/go-kit/kit/endpoint"
 )
 
@@ -330,10 +330,10 @@ func updateEmailEndpoint(svc users.Service) endpoint.Endpoint {
 
 // Password reset request endpoint.
 // When successful password reset link is generated.
-// Link is generated using MG_TOKEN_RESET_ENDPOINT env.
+// Link is generated using SMQ_TOKEN_RESET_ENDPOINT env.
 // and value from Referer header for host.
-// {Referer}+{MG_TOKEN_RESET_ENDPOINT}+{token=TOKEN}
-// http://magistrala.com/reset-request?token=xxxxxxxxxxx.
+// {Referer}+{SMQ_TOKEN_RESET_ENDPOINT}+{token=TOKEN}
+// http://supermq.com/reset-request?token=xxxxxxxxxxx.
 // Email with a link is being sent to the user.
 // When user clicks on a link it should get the ui with form to
 // enter new password, when form is submitted token and new password

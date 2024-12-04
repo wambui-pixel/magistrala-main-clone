@@ -11,9 +11,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/events"
-	"github.com/absmach/magistrala/pkg/messaging"
-	broker "github.com/absmach/magistrala/pkg/messaging/nats"
+	"github.com/absmach/supermq/pkg/events"
+	"github.com/absmach/supermq/pkg/messaging"
+	broker "github.com/absmach/supermq/pkg/messaging/nats"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 )
@@ -27,7 +27,7 @@ var (
 
 	jsStreamConfig = jetstream.StreamConfig{
 		Name:              "events",
-		Description:       "Magistrala stream for sending and receiving messages in between Magistrala events",
+		Description:       "SuperMQ stream for sending and receiving messages in between SuperMQ events",
 		Subjects:          []string{"events.>"},
 		Retention:         jetstream.LimitsPolicy,
 		MaxMsgsPerSubject: 1e9,

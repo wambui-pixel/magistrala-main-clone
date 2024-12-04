@@ -6,11 +6,11 @@ package events
 import (
 	"context"
 
-	"github.com/absmach/magistrala/pkg/events"
-	"github.com/absmach/magistrala/pkg/events/store"
+	"github.com/absmach/supermq/pkg/events"
+	"github.com/absmach/supermq/pkg/events/store"
 )
 
-const streamID = "magistrala.mqtt"
+const streamID = "supermq.mqtt"
 
 //go:generate mockery --name EventStore --output=../mocks --filename events.go --quiet --note "Copyright (c) Abstract Machines"
 type EventStore interface {

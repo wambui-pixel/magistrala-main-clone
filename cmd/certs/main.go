@@ -13,20 +13,20 @@ import (
 	"os"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/certs"
-	"github.com/absmach/magistrala/certs/api"
-	pki "github.com/absmach/magistrala/certs/pki/amcerts"
-	"github.com/absmach/magistrala/certs/tracing"
-	mglog "github.com/absmach/magistrala/logger"
-	authsvcAuthn "github.com/absmach/magistrala/pkg/authn/authsvc"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	jaegerclient "github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
-	"github.com/absmach/magistrala/pkg/server"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/certs"
+	"github.com/absmach/supermq/certs/api"
+	pki "github.com/absmach/supermq/certs/pki/amcerts"
+	"github.com/absmach/supermq/certs/tracing"
+	smqlog "github.com/absmach/supermq/logger"
+	authsvcAuthn "github.com/absmach/supermq/pkg/authn/authsvc"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	jaegerclient "github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/prometheus"
+	mgsdk "github.com/absmach/supermq/pkg/sdk/go"
+	"github.com/absmach/supermq/pkg/server"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/caarlos0/env/v11"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
@@ -34,29 +34,29 @@ import (
 
 const (
 	svcName        = "certs"
-	envPrefixDB    = "MG_CERTS_DB_"
-	envPrefixHTTP  = "MG_CERTS_HTTP_"
-	envPrefixAuth  = "MG_AUTH_GRPC_"
+	envPrefixDB    = "SMQ_CERTS_DB_"
+	envPrefixHTTP  = "SMQ_CERTS_HTTP_"
+	envPrefixAuth  = "SMQ_AUTH_GRPC_"
 	defDB          = "certs"
 	defSvcHTTPPort = "9019"
 )
 
 type config struct {
-	LogLevel      string  `env:"MG_CERTS_LOG_LEVEL"        envDefault:"info"`
-	ClientsURL    string  `env:"MG_CLIENTS_URL"            envDefault:"http://localhost:9000"`
-	JaegerURL     url.URL `env:"MG_JAEGER_URL"             envDefault:"http://localhost:4318/v1/traces"`
-	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"         envDefault:"true"`
-	InstanceID    string  `env:"MG_CERTS_INSTANCE_ID"      envDefault:""`
-	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"     envDefault:"1.0"`
+	LogLevel      string  `env:"SMQ_CERTS_LOG_LEVEL"        envDefault:"info"`
+	ClientsURL    string  `env:"SMQ_CLIENTS_URL"            envDefault:"http://localhost:9000"`
+	JaegerURL     url.URL `env:"SMQ_JAEGER_URL"             envDefault:"http://localhost:4318/v1/traces"`
+	SendTelemetry bool    `env:"SMQ_SEND_TELEMETRY"         envDefault:"true"`
+	InstanceID    string  `env:"SMQ_CERTS_INSTANCE_ID"      envDefault:""`
+	TraceRatio    float64 `env:"SMQ_JAEGER_TRACE_RATIO"     envDefault:"1.0"`
 
 	// Sign and issue certificates without 3rd party PKI
-	SignCAPath    string `env:"MG_CERTS_SIGN_CA_PATH"        envDefault:"ca.crt"`
-	SignCAKeyPath string `env:"MG_CERTS_SIGN_CA_KEY_PATH"    envDefault:"ca.key"`
+	SignCAPath    string `env:"SMQ_CERTS_SIGN_CA_PATH"        envDefault:"ca.crt"`
+	SignCAKeyPath string `env:"SMQ_CERTS_SIGN_CA_KEY_PATH"    envDefault:"ca.key"`
 
 	// Amcerts SDK settings
-	SDKHost         string `env:"MG_CERTS_SDK_HOST"             envDefault:""`
-	SDKCertsURL     string `env:"MG_CERTS_SDK_CERTS_URL"        envDefault:"http://localhost:9010"`
-	TLSVerification bool   `env:"MG_CERTS_SDK_TLS_VERIFICATION" envDefault:"false"`
+	SDKHost         string `env:"SMQ_CERTS_SDK_HOST"             envDefault:""`
+	SDKCertsURL     string `env:"SMQ_CERTS_SDK_CERTS_URL"        envDefault:"http://localhost:9010"`
+	TLSVerification bool   `env:"SMQ_CERTS_SDK_TLS_VERIFICATION" envDefault:"false"`
 }
 
 func main() {
@@ -68,13 +68,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -136,7 +136,7 @@ func main() {
 	hs := httpserver.NewServer(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, authn, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 

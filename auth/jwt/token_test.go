@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/absmach/magistrala/auth"
-	authjwt "github.com/absmach/magistrala/auth/jwt"
-	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
+	"github.com/absmach/supermq/auth"
+	authjwt "github.com/absmach/supermq/auth/jwt"
+	"github.com/absmach/supermq/internal/testsutil"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +23,7 @@ const (
 	tokenType   = "type"
 	userField   = "user"
 	domainField = "domain"
-	issuerName  = "magistrala.auth"
+	issuerName  = "supermq.auth"
 	secret      = "test"
 )
 
@@ -242,7 +242,7 @@ func key() auth.Key {
 	return auth.Key{
 		ID:        "66af4a67-3823-438a-abd7-efdb613eaef6",
 		Type:      auth.AccessKey,
-		Issuer:    "magistrala.auth",
+		Issuer:    "supermq.auth",
 		Subject:   "66af4a67-3823-438a-abd7-efdb613eaef6",
 		IssuedAt:  time.Now().UTC().Add(-10 * time.Second).Round(time.Second),
 		ExpiresAt: exp,

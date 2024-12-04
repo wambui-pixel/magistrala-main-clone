@@ -3,14 +3,14 @@
 
 services:
   domains:
-    image: magistrala/domains-dev
+    image: supermq/domains-dev
     build:
       context: .
       dockerfile: Dockerfile.livereload
     volumes:
-      - ../:/go/src/github.com/absmach/magistrala
+      - ../:/go/src/github.com/absmach/supermq
       - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
-    working_dir: /go/src/github.com/absmach/magistrala
+    working_dir: /go/src/github.com/absmach/supermq
     entrypoint: [ "air",
                   "--build.cmd", "BUILD_DIR=/tmp make domains",
                   "--build.bin", "/tmp/domains",
@@ -22,14 +22,14 @@ services:
                   "--tmp_dir", "/tmp",]
 
   users:
-    image: magistrala/users-dev
+    image: supermq/users-dev
     build:
       context: .
       dockerfile: Dockerfile.livereload
     volumes:
-      - ../:/go/src/github.com/absmach/magistrala
+      - ../:/go/src/github.com/absmach/supermq
       - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
-    working_dir: /go/src/github.com/absmach/magistrala
+    working_dir: /go/src/github.com/absmach/supermq
     entrypoint: [ "air",
                   "--build.cmd", "BUILD_DIR=/tmp make users",
                   "--build.bin", "/tmp/users",
@@ -39,14 +39,14 @@ services:
                   "--build.exclude_regex", "[\"_test\\.go\"" ,
                   "--tmp_dir", "/tmp",]
   clients:
-    image: magistrala/clients-dev
+    image: supermq/clients-dev
     build:
       context: .
       dockerfile: Dockerfile.livereload
     volumes:
-      - ../:/go/src/github.com/absmach/magistrala
+      - ../:/go/src/github.com/absmach/supermq
       - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
-    working_dir: /go/src/github.com/absmach/magistrala
+    working_dir: /go/src/github.com/absmach/supermq
     entrypoint: [ "air",
                   "--build.cmd", "BUILD_DIR=/tmp make clients",
                   "--build.bin", "/tmp/clients",
@@ -57,14 +57,14 @@ services:
                   "-tmp_dir", "/tmp",]
 
   channels:
-    image: magistrala/channels-dev
+    image: supermq/channels-dev
     build:
       context: .
       dockerfile: Dockerfile.livereload
     volumes:
-      - ../:/go/src/github.com/absmach/magistrala
+      - ../:/go/src/github.com/absmach/supermq
       - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
-    working_dir: /go/src/github.com/absmach/magistrala
+    working_dir: /go/src/github.com/absmach/supermq
     entrypoint: [ "air",
                   "--build.cmd", "BUILD_DIR=/tmp make channels",
                   "--build.bin", "/tmp/channels",
@@ -78,14 +78,14 @@ services:
     command: ["postgres", "-c", "log_statement=all"]
 
   groups:
-    image: magistrala/groups-dev
+    image: supermq/groups-dev
     build:
       context: .
       dockerfile: Dockerfile.livereload
     volumes:
-      - ../:/go/src/github.com/absmach/magistrala
+      - ../:/go/src/github.com/absmach/supermq
       - $GOPATH/pkg/mod/cache:/go/pkg/mod/cache
-    working_dir: /go/src/github.com/absmach/magistrala
+    working_dir: /go/src/github.com/absmach/supermq
     entrypoint: [ "air",
                   "--build.cmd", "BUILD_DIR=/tmp make groups",
                   "--build.bin", "/tmp/groups",

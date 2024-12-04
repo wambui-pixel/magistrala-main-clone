@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/absmach/magistrala/pkg/messaging"
-	"github.com/absmach/magistrala/pkg/messaging/rabbitmq"
+	"github.com/absmach/supermq/pkg/messaging"
+	"github.com/absmach/supermq/pkg/messaging/rabbitmq"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
@@ -30,7 +30,7 @@ var (
 	data    = []byte("payload")
 )
 
-var errFailedHandleMessage = errors.New("failed to handle magistrala message")
+var errFailedHandleMessage = errors.New("failed to handle supermq message")
 
 func TestPublisher(t *testing.T) {
 	// Subscribing with topic, and with subtopic, so that we can publish messages.
@@ -196,7 +196,7 @@ func TestSubscribe(t *testing.T) {
 				amqp.Publishing{
 					Headers:     amqp.Table{},
 					ContentType: "application/octet-stream",
-					AppId:       "magistrala-publisher",
+					AppId:       "supermq-publisher",
 					Body:        data,
 				})
 			assert.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))

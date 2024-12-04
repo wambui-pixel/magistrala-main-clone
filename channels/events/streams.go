@@ -6,15 +6,15 @@ package events
 import (
 	"context"
 
-	"github.com/absmach/magistrala/channels"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/connections"
-	"github.com/absmach/magistrala/pkg/events"
-	"github.com/absmach/magistrala/pkg/events/store"
-	rmEvents "github.com/absmach/magistrala/pkg/roles/rolemanager/events"
+	"github.com/absmach/supermq/channels"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/connections"
+	"github.com/absmach/supermq/pkg/events"
+	"github.com/absmach/supermq/pkg/events/store"
+	rmEvents "github.com/absmach/supermq/pkg/roles/rolemanager/events"
 )
 
-const streamID = "magistrala.clients"
+const streamID = "supermq.channels"
 
 var _ channels.Service = (*eventStore)(nil)
 

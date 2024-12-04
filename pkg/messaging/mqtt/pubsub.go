@@ -11,12 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/messaging"
+	"github.com/absmach/supermq/pkg/messaging"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"google.golang.org/protobuf/proto"
 )
 
-const username = "magistrala-mqtt"
+const username = "supermq-mqtt"
 
 var (
 	// ErrConnect indicates that connection to MQTT broker failed.
@@ -196,7 +196,7 @@ func (ps *pubsub) mqttHandler(h messaging.MessageHandler) mqtt.MessageHandler {
 		}
 
 		if err := h.Handle(&msg); err != nil {
-			ps.logger.Warn(fmt.Sprintf("Failed to handle Magistrala message: %s", err))
+			ps.logger.Warn(fmt.Sprintf("Failed to handle SuperMQ message: %s", err))
 		}
 	}
 }

@@ -6,13 +6,13 @@ package middleware
 import (
 	"context"
 
-	"github.com/absmach/magistrala/auth"
-	"github.com/absmach/magistrala/invitations"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/authz"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
+	"github.com/absmach/supermq/auth"
+	"github.com/absmach/supermq/invitations"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/authz"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
 )
 
 // ErrMemberExist indicates that the user is already a member of the domain.
@@ -57,7 +57,7 @@ func (am *authorizationMiddleware) ViewInvitation(ctx context.Context, session a
 
 func (am *authorizationMiddleware) ListInvitations(ctx context.Context, session authn.Session, page invitations.Page) (invs invitations.InvitationPage, err error) {
 	session.DomainUserID = auth.EncodeDomainUserID(session.DomainID, session.UserID)
-	if err := am.authorize(ctx, session.UserID, policies.AdminPermission, policies.PlatformType, policies.MagistralaObject); err == nil {
+	if err := am.authorize(ctx, session.UserID, policies.AdminPermission, policies.PlatformType, policies.SuperMQObject); err == nil {
 		session.SuperAdmin = true
 	}
 
@@ -98,7 +98,7 @@ func (am *authorizationMiddleware) checkAdmin(ctx context.Context, session authn
 		return nil
 	}
 
-	if err := am.authorize(ctx, session.UserID, policies.AdminPermission, policies.PlatformType, policies.MagistralaObject); err == nil {
+	if err := am.authorize(ctx, session.UserID, policies.AdminPermission, policies.PlatformType, policies.SuperMQObject); err == nil {
 		return nil
 	}
 

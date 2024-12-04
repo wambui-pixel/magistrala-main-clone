@@ -13,25 +13,25 @@ import (
 	"os"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	grpcTokenV1 "github.com/absmach/magistrala/internal/grpc/token/v1"
-	"github.com/absmach/magistrala/invitations"
-	"github.com/absmach/magistrala/invitations/api"
-	"github.com/absmach/magistrala/invitations/middleware"
-	invitationspg "github.com/absmach/magistrala/invitations/postgres"
-	mglog "github.com/absmach/magistrala/logger"
-	authsvcAuthn "github.com/absmach/magistrala/pkg/authn/authsvc"
-	mgauthz "github.com/absmach/magistrala/pkg/authz"
-	authsvcAuthz "github.com/absmach/magistrala/pkg/authz/authsvc"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	"github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/postgres"
-	clientspg "github.com/absmach/magistrala/pkg/postgres"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
-	"github.com/absmach/magistrala/pkg/server"
-	"github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq"
+	grpcTokenV1 "github.com/absmach/supermq/internal/grpc/token/v1"
+	"github.com/absmach/supermq/invitations"
+	"github.com/absmach/supermq/invitations/api"
+	"github.com/absmach/supermq/invitations/middleware"
+	invitationspg "github.com/absmach/supermq/invitations/postgres"
+	smqlog "github.com/absmach/supermq/logger"
+	authsvcAuthn "github.com/absmach/supermq/pkg/authn/authsvc"
+	smqauthz "github.com/absmach/supermq/pkg/authz"
+	authsvcAuthz "github.com/absmach/supermq/pkg/authz/authsvc"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	"github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/postgres"
+	clientspg "github.com/absmach/supermq/pkg/postgres"
+	"github.com/absmach/supermq/pkg/prometheus"
+	mgsdk "github.com/absmach/supermq/pkg/sdk/go"
+	"github.com/absmach/supermq/pkg/server"
+	"github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/caarlos0/env/v11"
 	"github.com/jmoiron/sqlx"
 	"go.opentelemetry.io/otel/trace"
@@ -40,21 +40,21 @@ import (
 
 const (
 	svcName        = "invitations"
-	envPrefixDB    = "MG_INVITATIONS_DB_"
-	envPrefixHTTP  = "MG_INVITATIONS_HTTP_"
-	envPrefixAuth  = "MG_AUTH_GRPC_"
+	envPrefixDB    = "SMQ_INVITATIONS_DB_"
+	envPrefixHTTP  = "SMQ_INVITATIONS_HTTP_"
+	envPrefixAuth  = "SMQ_AUTH_GRPC_"
 	defDB          = "invitations"
 	defSvcHTTPPort = "9020"
 )
 
 type config struct {
-	LogLevel      string  `env:"MG_INVITATIONS_LOG_LEVEL"      envDefault:"info"`
-	UsersURL      string  `env:"MG_USERS_URL"                  envDefault:"http://localhost:9002"`
-	DomainsURL    string  `env:"MG_DOMAINS_URL"                envDefault:"http://localhost:8189"`
-	InstanceID    string  `env:"MG_INVITATIONS_INSTANCE_ID"    envDefault:""`
-	JaegerURL     url.URL `env:"MG_JAEGER_URL"                 envDefault:"http://localhost:4318/v1/traces"`
-	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
-	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"             envDefault:"true"`
+	LogLevel      string  `env:"SMQ_INVITATIONS_LOG_LEVEL"      envDefault:"info"`
+	UsersURL      string  `env:"SMQ_USERS_URL"                  envDefault:"http://localhost:9002"`
+	DomainsURL    string  `env:"SMQ_DOMAINS_URL"                envDefault:"http://localhost:8189"`
+	InstanceID    string  `env:"SMQ_INVITATIONS_INSTANCE_ID"    envDefault:""`
+	JaegerURL     url.URL `env:"SMQ_JAEGER_URL"                 envDefault:"http://localhost:4318/v1/traces"`
+	TraceRatio    float64 `env:"SMQ_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
+	SendTelemetry bool    `env:"SMQ_SEND_TELEMETRY"             envDefault:"true"`
 }
 
 func main() {
@@ -66,13 +66,13 @@ func main() {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)
 	}
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -159,7 +159,7 @@ func main() {
 	httpSvr := http.NewServer(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, logger, authn, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 
@@ -176,7 +176,7 @@ func main() {
 	}
 }
 
-func newService(db *sqlx.DB, dbConfig clientspg.Config, authz mgauthz.Authorization, token grpcTokenV1.TokenServiceClient, tracer trace.Tracer, conf config, logger *slog.Logger) (invitations.Service, error) {
+func newService(db *sqlx.DB, dbConfig clientspg.Config, authz smqauthz.Authorization, token grpcTokenV1.TokenServiceClient, tracer trace.Tracer, conf config, logger *slog.Logger) (invitations.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	repo := invitationspg.NewRepository(database)
 

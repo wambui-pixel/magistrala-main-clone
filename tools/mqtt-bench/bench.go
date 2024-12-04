@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	mglog "github.com/absmach/magistrala/logger"
+	smqlog "github.com/absmach/supermq/logger"
 	"github.com/pelletier/go-toml"
 )
 
@@ -23,7 +23,7 @@ func Benchmark(cfg Config) error {
 	if err := checkConnection(cfg.MQTT.Broker.URL, 1); err != nil {
 		return err
 	}
-	logger, err := mglog.New(os.Stdout, "debug")
+	logger, err := smqlog.New(os.Stdout, "debug")
 	if err != nil {
 		return err
 	}
@@ -44,14 +44,14 @@ func Benchmark(cfg Config) error {
 		caByte, _ = io.ReadAll(caFile)
 	}
 
-	data, err := os.ReadFile(cfg.Mg.ConnFile)
+	data, err := os.ReadFile(cfg.Smq.ConnFile)
 	if err != nil {
 		return fmt.Errorf("error loading connections file: %s", err)
 	}
 
-	mg := magistrala{}
+	mg := superMQ{}
 	if err := toml.Unmarshal(data, &mg); err != nil {
-		return fmt.Errorf("cannot load Magistrala connections config %s \nUse tools/provision to create file", cfg.Mg.ConnFile)
+		return fmt.Errorf("cannot load SuperMQ connections config %s \nUse tools/provision to create file", cfg.Smq.ConnFile)
 	}
 
 	resCh := make(chan *runResults)
@@ -171,7 +171,7 @@ func getBytePayload(size int, m message) (handler, error) {
 	return ret, nil
 }
 
-func makeClient(i int, cfg Config, mgChan mgChannel, cli mgClient, start time.Time, caCert []byte, clientCert tls.Certificate) (*Client, error) {
+func makeClient(i int, cfg Config, mgChan channel, cli client, start time.Time, caCert []byte, clientCert tls.Certificate) (*Client, error) {
 	c := &Client{
 		ID:         strconv.Itoa(i),
 		BrokerURL:  cfg.MQTT.Broker.URL,

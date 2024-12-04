@@ -10,25 +10,25 @@ import (
 	"time"
 
 	"github.com/0x6flab/namegenerator"
-	"github.com/absmach/magistrala/channels"
-	"github.com/absmach/magistrala/channels/mocks"
-	"github.com/absmach/magistrala/clients"
-	mgclients "github.com/absmach/magistrala/clients"
-	clmocks "github.com/absmach/magistrala/clients/mocks"
-	gpmocks "github.com/absmach/magistrala/groups/mocks"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	grpcCommonV1 "github.com/absmach/magistrala/internal/grpc/common/v1"
-	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/connections"
-	"github.com/absmach/magistrala/pkg/errors"
-	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	policysvc "github.com/absmach/magistrala/pkg/policies"
-	policymocks "github.com/absmach/magistrala/pkg/policies/mocks"
-	"github.com/absmach/magistrala/pkg/roles"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq/channels"
+	"github.com/absmach/supermq/channels/mocks"
+	"github.com/absmach/supermq/clients"
+	smqclients "github.com/absmach/supermq/clients"
+	clmocks "github.com/absmach/supermq/clients/mocks"
+	gpmocks "github.com/absmach/supermq/groups/mocks"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	grpcCommonV1 "github.com/absmach/supermq/internal/grpc/common/v1"
+	"github.com/absmach/supermq/internal/testsutil"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/connections"
+	"github.com/absmach/supermq/pkg/errors"
+	repoerr "github.com/absmach/supermq/pkg/errors/repository"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	policysvc "github.com/absmach/supermq/pkg/policies"
+	policymocks "github.com/absmach/supermq/pkg/policies/mocks"
+	"github.com/absmach/supermq/pkg/roles"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -767,7 +767,7 @@ func TestRemoveChannel(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			repoCall := repo.On("DoesChannelHaveConnections", context.Background(), validChannel.ID).Return(tc.connectionsRes, tc.connectionsErr)
 			clientsCall := clientsSvc.On("RemoveChannelConnections", context.Background(), &grpcClientsV1.RemoveChannelConnectionsReq{ChannelId: tc.id}).Return(&grpcClientsV1.RemoveChannelConnectionsRes{}, tc.removeConnectionsErr)
-			repoCall1 := repo.On("ChangeStatus", context.Background(), channels.Channel{ID: tc.id, Status: mgclients.DeletedStatus}).Return(tc.changeStatusRes, tc.changeStatusErr)
+			repoCall1 := repo.On("ChangeStatus", context.Background(), channels.Channel{ID: tc.id, Status: smqclients.DeletedStatus}).Return(tc.changeStatusRes, tc.changeStatusErr)
 			repoCall2 := repo.On("RetrieveEntitiesRolesActionsMembers", context.Background(), []string{tc.id}).Return([]roles.EntityActionRole{}, []roles.EntityMemberRole{}, nil)
 			policyCall := policies.On("DeletePolicies", context.Background(), mock.Anything).Return(tc.deletePoliciesErr)
 			policyCall1 := policies.On("DeletePolicyFilter", context.Background(), mock.Anything).Return(tc.deletePolicyFilterErr)

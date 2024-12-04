@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/journal"
-	"github.com/absmach/magistrala/journal/mocks"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
-	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/absmach/supermq/internal/testsutil"
+	"github.com/absmach/supermq/journal"
+	"github.com/absmach/supermq/journal/mocks"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	repoerr "github.com/absmach/supermq/pkg/errors/repository"
+	"github.com/absmach/supermq/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -73,7 +73,7 @@ func TestReadAll(t *testing.T) {
 	repo := new(mocks.Repository)
 	svc := journal.NewService(idProvider, repo)
 
-	validSession := mgauthn.Session{DomainUserID: testsutil.GenerateUUID(t), UserID: testsutil.GenerateUUID(t), DomainID: testsutil.GenerateUUID(t)}
+	validSession := smqauthn.Session{DomainUserID: testsutil.GenerateUUID(t), UserID: testsutil.GenerateUUID(t), DomainID: testsutil.GenerateUUID(t)}
 	validPage := journal.Page{
 		Offset:     0,
 		Limit:      10,
@@ -83,7 +83,7 @@ func TestReadAll(t *testing.T) {
 
 	cases := []struct {
 		desc    string
-		session mgauthn.Session
+		session smqauthn.Session
 		page    journal.Page
 		resp    journal.JournalsPage
 		authErr error

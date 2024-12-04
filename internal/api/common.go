@@ -8,15 +8,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/bootstrap"
-	"github.com/absmach/magistrala/certs"
-	"github.com/absmach/magistrala/clients"
-	"github.com/absmach/magistrala/groups"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/users"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/bootstrap"
+	"github.com/absmach/supermq/certs"
+	"github.com/absmach/supermq/clients"
+	"github.com/absmach/supermq/groups"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/users"
 	"github.com/gofrs/uuid/v5"
 )
 
@@ -101,7 +101,7 @@ func ValidateUUID(extID string) (err error) {
 
 // EncodeResponse encodes successful response.
 func EncodeResponse(_ context.Context, w http.ResponseWriter, response interface{}) error {
-	if ar, ok := response.(magistrala.Response); ok {
+	if ar, ok := response.(supermq.Response); ok {
 		for k, v := range ar.Headers() {
 			w.Header().Set(k, v)
 		}

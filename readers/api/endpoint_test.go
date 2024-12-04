@@ -11,19 +11,19 @@ import (
 	"testing"
 	"time"
 
-	chmocks "github.com/absmach/magistrala/channels/mocks"
-	climocks "github.com/absmach/magistrala/clients/mocks"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	authnmocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/transformers/senml"
-	"github.com/absmach/magistrala/readers"
-	"github.com/absmach/magistrala/readers/api"
-	"github.com/absmach/magistrala/readers/mocks"
+	chmocks "github.com/absmach/supermq/channels/mocks"
+	climocks "github.com/absmach/supermq/clients/mocks"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	"github.com/absmach/supermq/internal/testsutil"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/transformers/senml"
+	"github.com/absmach/supermq/readers"
+	"github.com/absmach/supermq/readers/api"
+	"github.com/absmach/supermq/readers/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -50,7 +50,7 @@ var (
 	vb                   = true
 	vd                   = "dataValue"
 	sum          float64 = 42
-	validSession         = mgauthn.Session{UserID: testsutil.GenerateUUID(&testing.T{})}
+	validSession         = smqauthn.Session{UserID: testsutil.GenerateUUID(&testing.T{})}
 )
 
 func newServer(repo *mocks.MessageRepository, authn *authnmocks.Authentication, clients *climocks.ClientsServiceClient, channels *chmocks.ChannelsServiceClient) *httptest.Server {

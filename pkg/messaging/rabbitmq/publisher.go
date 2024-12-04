@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/absmach/magistrala/pkg/messaging"
+	"github.com/absmach/supermq/pkg/messaging"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/protobuf/proto"
 )
@@ -76,7 +76,7 @@ func (pub *publisher) Publish(ctx context.Context, topic string, msg *messaging.
 		amqp.Publishing{
 			Headers:     amqp.Table{},
 			ContentType: "application/octet-stream",
-			AppId:       "magistrala-publisher",
+			AppId:       "supermq-publisher",
 			Body:        data,
 		})
 	if err != nil {

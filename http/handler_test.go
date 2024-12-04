@@ -9,21 +9,21 @@ import (
 	"net/http"
 	"testing"
 
-	chmocks "github.com/absmach/magistrala/channels/mocks"
-	clmocks "github.com/absmach/magistrala/clients/mocks"
-	mhttp "github.com/absmach/magistrala/http"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	"github.com/absmach/magistrala/internal/testsutil"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	authnmocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/messaging/mocks"
 	mghttp "github.com/absmach/mgate/pkg/http"
 	"github.com/absmach/mgate/pkg/session"
+	chmocks "github.com/absmach/supermq/channels/mocks"
+	clmocks "github.com/absmach/supermq/clients/mocks"
+	mhttp "github.com/absmach/supermq/http"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	"github.com/absmach/supermq/internal/testsutil"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/messaging/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -57,7 +57,7 @@ var (
 	errMalformedTopic           = errors.New("malformed topic")
 	errFailedParseSubtopic      = errors.New("failed to parse subtopic")
 	errMalformedSubtopic        = errors.New("malformed subtopic")
-	errFailedPublishToMsgBroker = errors.New("failed to publish to magistrala message broker")
+	errFailedPublishToMsgBroker = errors.New("failed to publish to supermq message broker")
 )
 
 var (
@@ -68,7 +68,7 @@ var (
 )
 
 func newHandler() session.Handler {
-	logger := mglog.NewMock()
+	logger := smqlog.NewMock()
 	authn = new(authnmocks.Authentication)
 	clients = new(clmocks.ClientsServiceClient)
 	channels = new(chmocks.ChannelsServiceClient)
@@ -152,7 +152,7 @@ func TestPublish(t *testing.T) {
 		session    *session.Session
 		status     int
 		authNRes   *grpcClientsV1.AuthnRes
-		authNRes1  mgauthn.Session
+		authNRes1  smqauthn.Session
 		authNErr   error
 		authZRes   *grpcChannelsV1.AuthzRes
 		authZErr   error
@@ -179,7 +179,7 @@ func TestPublish(t *testing.T) {
 			password:  validToken,
 			session:   &tokenSession,
 			channelID: chanID,
-			authNRes1: mgauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID},
+			authNRes1: smqauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID},
 			authNErr:  nil,
 			authZRes:  &grpcChannelsV1.AuthzRes{Authorized: true},
 			authZErr:  nil,
@@ -279,7 +279,7 @@ func TestPublish(t *testing.T) {
 			session:   &tokenSession,
 			channelID: chanID,
 			status:    http.StatusUnauthorized,
-			authNRes1: mgauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID},
+			authNRes1: smqauthn.Session{DomainUserID: validID, UserID: validID, DomainID: validID},
 			authNErr:  svcerr.ErrAuthentication,
 			err:       svcerr.ErrAuthentication,
 		},

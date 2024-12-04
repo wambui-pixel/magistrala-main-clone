@@ -15,34 +15,34 @@ import (
 	"time"
 
 	chclient "github.com/absmach/callhome/pkg/client"
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/internal/email"
-	grpcDomainsV1 "github.com/absmach/magistrala/internal/grpc/domains/v1"
-	grpcTokenV1 "github.com/absmach/magistrala/internal/grpc/token/v1"
-	mglog "github.com/absmach/magistrala/logger"
-	authsvcAuthn "github.com/absmach/magistrala/pkg/authn/authsvc"
-	mgauthz "github.com/absmach/magistrala/pkg/authz"
-	authsvcAuthz "github.com/absmach/magistrala/pkg/authz/authsvc"
-	"github.com/absmach/magistrala/pkg/grpcclient"
-	jaegerclient "github.com/absmach/magistrala/pkg/jaeger"
-	"github.com/absmach/magistrala/pkg/oauth2"
-	googleoauth "github.com/absmach/magistrala/pkg/oauth2/google"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/pkg/policies/spicedb"
-	pg "github.com/absmach/magistrala/pkg/postgres"
-	pgclient "github.com/absmach/magistrala/pkg/postgres"
-	"github.com/absmach/magistrala/pkg/prometheus"
-	"github.com/absmach/magistrala/pkg/server"
-	httpserver "github.com/absmach/magistrala/pkg/server/http"
-	"github.com/absmach/magistrala/pkg/uuid"
-	"github.com/absmach/magistrala/users"
-	"github.com/absmach/magistrala/users/api"
-	"github.com/absmach/magistrala/users/emailer"
-	"github.com/absmach/magistrala/users/events"
-	"github.com/absmach/magistrala/users/hasher"
-	"github.com/absmach/magistrala/users/middleware"
-	"github.com/absmach/magistrala/users/postgres"
-	"github.com/absmach/magistrala/users/tracing"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/internal/email"
+	grpcDomainsV1 "github.com/absmach/supermq/internal/grpc/domains/v1"
+	grpcTokenV1 "github.com/absmach/supermq/internal/grpc/token/v1"
+	smqlog "github.com/absmach/supermq/logger"
+	authsvcAuthn "github.com/absmach/supermq/pkg/authn/authsvc"
+	smqauthz "github.com/absmach/supermq/pkg/authz"
+	authsvcAuthz "github.com/absmach/supermq/pkg/authz/authsvc"
+	"github.com/absmach/supermq/pkg/grpcclient"
+	jaegerclient "github.com/absmach/supermq/pkg/jaeger"
+	"github.com/absmach/supermq/pkg/oauth2"
+	googleoauth "github.com/absmach/supermq/pkg/oauth2/google"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/pkg/policies/spicedb"
+	pg "github.com/absmach/supermq/pkg/postgres"
+	pgclient "github.com/absmach/supermq/pkg/postgres"
+	"github.com/absmach/supermq/pkg/prometheus"
+	"github.com/absmach/supermq/pkg/server"
+	httpserver "github.com/absmach/supermq/pkg/server/http"
+	"github.com/absmach/supermq/pkg/uuid"
+	"github.com/absmach/supermq/users"
+	"github.com/absmach/supermq/users/api"
+	"github.com/absmach/supermq/users/emailer"
+	"github.com/absmach/supermq/users/events"
+	"github.com/absmach/supermq/users/hasher"
+	"github.com/absmach/supermq/users/middleware"
+	"github.com/absmach/supermq/users/postgres"
+	"github.com/absmach/supermq/users/tracing"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
 	"github.com/caarlos0/env/v11"
@@ -56,37 +56,37 @@ import (
 
 const (
 	svcName          = "users"
-	envPrefixDB      = "MG_USERS_DB_"
-	envPrefixHTTP    = "MG_USERS_HTTP_"
-	envPrefixAuth    = "MG_AUTH_GRPC_"
-	envPrefixDomains = "MG_DOMAINS_GRPC_"
-	envPrefixGoogle  = "MG_GOOGLE_"
+	envPrefixDB      = "SMQ_USERS_DB_"
+	envPrefixHTTP    = "SMQ_USERS_HTTP_"
+	envPrefixAuth    = "SMQ_AUTH_GRPC_"
+	envPrefixDomains = "SMQ_DOMAINS_GRPC_"
+	envPrefixGoogle  = "SMQ_GOOGLE_"
 	defDB            = "users"
 	defSvcHTTPPort   = "9002"
 )
 
 type config struct {
-	LogLevel            string        `env:"MG_USERS_LOG_LEVEL"           envDefault:"info"`
-	AdminEmail          string        `env:"MG_USERS_ADMIN_EMAIL"         envDefault:"admin@example.com"`
-	AdminPassword       string        `env:"MG_USERS_ADMIN_PASSWORD"      envDefault:"12345678"`
-	AdminUsername       string        `env:"MG_USERS_ADMIN_USERNAME"      envDefault:"admin"`
-	AdminFirstName      string        `env:"MG_USERS_ADMIN_FIRST_NAME"    envDefault:"super"`
-	AdminLastName       string        `env:"MG_USERS_ADMIN_LAST_NAME"     envDefault:"admin"`
-	PassRegexText       string        `env:"MG_USERS_PASS_REGEX"          envDefault:"^.{8,}$"`
-	ResetURL            string        `env:"MG_TOKEN_RESET_ENDPOINT"      envDefault:"/reset-request"`
-	JaegerURL           url.URL       `env:"MG_JAEGER_URL"                envDefault:"http://localhost:4318/v1/traces"`
-	SendTelemetry       bool          `env:"MG_SEND_TELEMETRY"            envDefault:"true"`
-	InstanceID          string        `env:"MG_USERS_INSTANCE_ID"         envDefault:""`
-	ESURL               string        `env:"MG_ES_URL"                    envDefault:"nats://localhost:4222"`
-	TraceRatio          float64       `env:"MG_JAEGER_TRACE_RATIO"        envDefault:"1.0"`
-	SelfRegister        bool          `env:"MG_USERS_ALLOW_SELF_REGISTER" envDefault:"false"`
-	OAuthUIRedirectURL  string        `env:"MG_OAUTH_UI_REDIRECT_URL"     envDefault:"http://localhost:9095/domains"`
-	OAuthUIErrorURL     string        `env:"MG_OAUTH_UI_ERROR_URL"        envDefault:"http://localhost:9095/error"`
-	DeleteInterval      time.Duration `env:"MG_USERS_DELETE_INTERVAL"     envDefault:"24h"`
-	DeleteAfter         time.Duration `env:"MG_USERS_DELETE_AFTER"        envDefault:"720h"`
-	SpicedbHost         string        `env:"MG_SPICEDB_HOST"              envDefault:"localhost"`
-	SpicedbPort         string        `env:"MG_SPICEDB_PORT"              envDefault:"50051"`
-	SpicedbPreSharedKey string        `env:"MG_SPICEDB_PRE_SHARED_KEY"    envDefault:"12345678"`
+	LogLevel            string        `env:"SMQ_USERS_LOG_LEVEL"           envDefault:"info"`
+	AdminEmail          string        `env:"SMQ_USERS_ADMIN_EMAIL"         envDefault:"admin@example.com"`
+	AdminPassword       string        `env:"SMQ_USERS_ADMIN_PASSWORD"      envDefault:"12345678"`
+	AdminUsername       string        `env:"SMQ_USERS_ADMIN_USERNAME"      envDefault:"admin"`
+	AdminFirstName      string        `env:"SMQ_USERS_ADMIN_FIRST_NAME"    envDefault:"super"`
+	AdminLastName       string        `env:"SMQ_USERS_ADMIN_LAST_NAME"     envDefault:"admin"`
+	PassRegexText       string        `env:"SMQ_USERS_PASS_REGEX"          envDefault:"^.{8,}$"`
+	ResetURL            string        `env:"SMQ_TOKEN_RESET_ENDPOINT"      envDefault:"/reset-request"`
+	JaegerURL           url.URL       `env:"SMQ_JAEGER_URL"                envDefault:"http://localhost:4318/v1/traces"`
+	SendTelemetry       bool          `env:"SMQ_SEND_TELEMETRY"            envDefault:"true"`
+	InstanceID          string        `env:"SMQ_USERS_INSTANCE_ID"         envDefault:""`
+	ESURL               string        `env:"SMQ_ES_URL"                    envDefault:"nats://localhost:4222"`
+	TraceRatio          float64       `env:"SMQ_JAEGER_TRACE_RATIO"        envDefault:"1.0"`
+	SelfRegister        bool          `env:"SMQ_USERS_ALLOW_SELF_REGISTER" envDefault:"false"`
+	OAuthUIRedirectURL  string        `env:"SMQ_OAUTH_UI_REDIRECT_URL"     envDefault:"http://localhost:9095/domains"`
+	OAuthUIErrorURL     string        `env:"SMQ_OAUTH_UI_ERROR_URL"        envDefault:"http://localhost:9095/error"`
+	DeleteInterval      time.Duration `env:"SMQ_USERS_DELETE_INTERVAL"     envDefault:"24h"`
+	DeleteAfter         time.Duration `env:"SMQ_USERS_DELETE_AFTER"        envDefault:"720h"`
+	SpicedbHost         string        `env:"SMQ_SPICEDB_HOST"              envDefault:"localhost"`
+	SpicedbPort         string        `env:"SMQ_SPICEDB_PORT"              envDefault:"50051"`
+	SpicedbPreSharedKey string        `env:"SMQ_SPICEDB_PRE_SHARED_KEY"    envDefault:"12345678"`
 	PassRegex           *regexp.Regexp
 }
 
@@ -104,13 +104,13 @@ func main() {
 	}
 	cfg.PassRegex = passRegex
 
-	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := smqlog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
-	defer mglog.ExitWithError(&exitCode)
+	defer smqlog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
@@ -240,7 +240,7 @@ func main() {
 	httpSrv := httpserver.NewServer(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(csvc, authn, tokenClient, cfg.SelfRegister, mux, logger, cfg.InstanceID, cfg.PassRegex, oauthProvider), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, supermq.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 
@@ -257,7 +257,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, authz mgauthz.Authorization, token grpcTokenV1.TokenServiceClient, policyService policies.Service, domainsClient grpcDomainsV1.DomainsServiceClient, db *sqlx.DB, dbConfig pgclient.Config, tracer trace.Tracer, c config, ec email.Config, logger *slog.Logger) (users.Service, error) {
+func newService(ctx context.Context, authz smqauthz.Authorization, token grpcTokenV1.TokenServiceClient, policyService policies.Service, domainsClient grpcDomainsV1.DomainsServiceClient, db *sqlx.DB, dbConfig pgclient.Config, tracer trace.Tracer, c config, ec email.Config, logger *slog.Logger) (users.Service, error) {
 	database := pg.NewDatabase(db, dbConfig, tracer)
 	idp := uuid.New()
 	hsr := hasher.New()
@@ -337,19 +337,19 @@ func createAdmin(ctx context.Context, c config, repo users.Repository, hsr users
 	return user.ID, nil
 }
 
-func createAdminPolicy(ctx context.Context, userID string, authz mgauthz.Authorization, policyService policies.Service) error {
-	if err := authz.Authorize(ctx, mgauthz.PolicyReq{
+func createAdminPolicy(ctx context.Context, userID string, authz smqauthz.Authorization, policyService policies.Service) error {
+	if err := authz.Authorize(ctx, smqauthz.PolicyReq{
 		SubjectType: policies.UserType,
 		Subject:     userID,
 		Permission:  policies.AdministratorRelation,
-		Object:      policies.MagistralaObject,
+		Object:      policies.SuperMQObject,
 		ObjectType:  policies.PlatformType,
 	}); err != nil {
 		err := policyService.AddPolicy(ctx, policies.Policy{
 			SubjectType: policies.UserType,
 			Subject:     userID,
 			Relation:    policies.AdministratorRelation,
-			Object:      policies.MagistralaObject,
+			Object:      policies.SuperMQObject,
 			ObjectType:  policies.PlatformType,
 		})
 		if err != nil {

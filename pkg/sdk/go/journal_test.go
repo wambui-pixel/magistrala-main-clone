@@ -10,16 +10,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/absmach/magistrala/journal"
-	"github.com/absmach/magistrala/journal/api"
-	"github.com/absmach/magistrala/journal/mocks"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	authnmocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	sdk "github.com/absmach/magistrala/pkg/sdk/go"
+	"github.com/absmach/supermq/journal"
+	"github.com/absmach/supermq/journal/api"
+	"github.com/absmach/supermq/journal/mocks"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	sdk "github.com/absmach/supermq/pkg/sdk/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -27,7 +27,7 @@ import (
 func setupJournal() (*httptest.Server, *mocks.Service, *authnmocks.Authentication) {
 	svc := new(mocks.Service)
 	authn := new(authnmocks.Authentication)
-	logger := mglog.NewMock()
+	logger := smqlog.NewMock()
 	mux := api.MakeHandler(svc, authn, logger, "journal-log", "test")
 
 	return httptest.NewServer(mux), svc, authn
@@ -49,7 +49,7 @@ func TestRetrieveJournal(t *testing.T) {
 	cases := []struct {
 		desc       string
 		token      string
-		session    mgauthn.Session
+		session    smqauthn.Session
 		entityType string
 		entityID   string
 		domainID   string
@@ -329,7 +329,7 @@ func TestRetrieveJournal(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			if tc.token == validToken {
-				tc.session = mgauthn.Session{DomainUserID: domainID + "_" + validID, UserID: validID, DomainID: domainID}
+				tc.session = smqauthn.Session{DomainUserID: domainID + "_" + validID, UserID: validID, DomainID: domainID}
 			}
 			authCall := authn.On("Authenticate", mock.Anything, mock.Anything).Return(tc.session, tc.authnErr)
 			svcCall := svc.On("RetrieveAll", mock.Anything, tc.session, tc.svcReq).Return(tc.svcRes, tc.svcErr)

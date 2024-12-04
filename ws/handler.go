@@ -12,16 +12,16 @@ import (
 	"strings"
 	"time"
 
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/connections"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/messaging"
-	"github.com/absmach/magistrala/pkg/policies"
 	"github.com/absmach/mgate/pkg/session"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/connections"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/messaging"
+	"github.com/absmach/supermq/pkg/policies"
 )
 
 var _ session.Handler = (*handler)(nil)
@@ -47,7 +47,7 @@ var (
 	errFailedSubscribe          = errors.New("failed to subscribe")
 	errFailedPublish            = errors.New("failed to publish")
 	errFailedParseSubtopic      = errors.New("failed to parse subtopic")
-	errFailedPublishToMsgBroker = errors.New("failed to publish to magistrala message broker")
+	errFailedPublishToMsgBroker = errors.New("failed to publish to supermq message broker")
 )
 
 var channelRegExp = regexp.MustCompile(`^\/?channels\/([\w\-]+)\/messages(\/[^?]*)?(\?.*)?$`)
@@ -57,12 +57,12 @@ type handler struct {
 	pubsub   messaging.PubSub
 	clients  grpcClientsV1.ClientsServiceClient
 	channels grpcChannelsV1.ChannelsServiceClient
-	authn    mgauthn.Authentication
+	authn    smqauthn.Authentication
 	logger   *slog.Logger
 }
 
 // NewHandler creates new Handler entity.
-func NewHandler(pubsub messaging.PubSub, logger *slog.Logger, authn mgauthn.Authentication, clients grpcClientsV1.ClientsServiceClient, channels grpcChannelsV1.ChannelsServiceClient) session.Handler {
+func NewHandler(pubsub messaging.PubSub, logger *slog.Logger, authn smqauthn.Authentication, clients grpcClientsV1.ClientsServiceClient, channels grpcChannelsV1.ChannelsServiceClient) session.Handler {
 	return &handler{
 		logger:   logger,
 		pubsub:   pubsub,

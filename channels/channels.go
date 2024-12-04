@@ -7,13 +7,13 @@ import (
 	"context"
 	"time"
 
-	clients "github.com/absmach/magistrala/clients"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/connections"
-	"github.com/absmach/magistrala/pkg/roles"
+	clients "github.com/absmach/supermq/clients"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/connections"
+	"github.com/absmach/supermq/pkg/roles"
 )
 
-// Channel represents a Magistrala "communication topic". This topic
+// Channel represents a SuperMQ "communication topic". This topic
 // contains the clients that can exchange messages between each other.
 type Channel struct {
 	ID          string           `json:"id"`

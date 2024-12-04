@@ -8,15 +8,15 @@ import (
 	"net/mail"
 	"time"
 
-	"github.com/absmach/magistrala"
-	mgauth "github.com/absmach/magistrala/auth"
-	grpcTokenV1 "github.com/absmach/magistrala/internal/grpc/token/v1"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
+	"github.com/absmach/supermq"
+	smqauth "github.com/absmach/supermq/auth"
+	grpcTokenV1 "github.com/absmach/supermq/internal/grpc/token/v1"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	repoerr "github.com/absmach/supermq/pkg/errors/repository"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -30,14 +30,14 @@ var (
 type service struct {
 	token      grpcTokenV1.TokenServiceClient
 	users      Repository
-	idProvider magistrala.IDProvider
+	idProvider supermq.IDProvider
 	policies   policies.Service
 	hasher     Hasher
 	email      Emailer
 }
 
 // NewService returns a new Users service implementation.
-func NewService(token grpcTokenV1.TokenServiceClient, urepo Repository, policyService policies.Service, emailer Emailer, hasher Hasher, idp magistrala.IDProvider) Service {
+func NewService(token grpcTokenV1.TokenServiceClient, urepo Repository, policyService policies.Service, emailer Emailer, hasher Hasher, idp supermq.IDProvider) Service {
 	return service{
 		token:      token,
 		users:      urepo,
@@ -112,7 +112,7 @@ func (svc service) IssueToken(ctx context.Context, identity, secret string) (*gr
 		return &grpcTokenV1.Token{}, errors.Wrap(svcerr.ErrLogin, err)
 	}
 
-	token, err := svc.token.Issue(ctx, &grpcTokenV1.IssueReq{UserId: dbUser.ID, Type: uint32(mgauth.AccessKey)})
+	token, err := svc.token.Issue(ctx, &grpcTokenV1.IssueReq{UserId: dbUser.ID, Type: uint32(smqauth.AccessKey)})
 	if err != nil {
 		return &grpcTokenV1.Token{}, errors.Wrap(errIssueToken, err)
 	}
@@ -293,7 +293,7 @@ func (svc service) GenerateResetToken(ctx context.Context, email, host string) e
 	}
 	issueReq := &grpcTokenV1.IssueReq{
 		UserId: user.ID,
-		Type:   uint32(mgauth.RecoveryKey),
+		Type:   uint32(smqauth.RecoveryKey),
 	}
 	token, err := svc.token.Issue(ctx, issueReq)
 	if err != nil {
@@ -500,7 +500,7 @@ func (svc service) ListMembers(ctx context.Context, session authn.Session, objec
 	var userIDs []string
 
 	for _, domainUserID := range duids.Policies {
-		_, userID := mgauth.DecodeDomainUserID(domainUserID)
+		_, userID := smqauth.DecodeDomainUserID(domainUserID)
 		userIDs = append(userIDs, userID)
 	}
 	pm.IDs = userIDs
@@ -547,7 +547,7 @@ func (svc service) ListMembers(ctx context.Context, session authn.Session, objec
 }
 
 func (svc service) retrieveObjectUsersPermissions(ctx context.Context, domainID, objectType, objectID string, user *User) error {
-	userID := mgauth.EncodeDomainUserID(domainID, user.ID)
+	userID := smqauth.EncodeDomainUserID(domainID, user.ID)
 	permissions, err := svc.listObjectUserPermission(ctx, userID, objectType, objectID)
 	if err != nil {
 		return errors.Wrap(svcerr.ErrAuthorization, err)
@@ -615,7 +615,7 @@ func (svc service) addUserPolicy(ctx context.Context, userID string, role Role) 
 		Subject:     userID,
 		Relation:    policies.MemberRelation,
 		ObjectType:  policies.PlatformType,
-		Object:      policies.MagistralaObject,
+		Object:      policies.SuperMQObject,
 	})
 
 	if role == AdminRole {
@@ -624,7 +624,7 @@ func (svc service) addUserPolicy(ctx context.Context, userID string, role Role) 
 			Subject:     userID,
 			Relation:    policies.AdministratorRelation,
 			ObjectType:  policies.PlatformType,
-			Object:      policies.MagistralaObject,
+			Object:      policies.SuperMQObject,
 		})
 	}
 	err := svc.policies.AddPolicies(ctx, policyList)
@@ -643,7 +643,7 @@ func (svc service) addUserPolicyRollback(ctx context.Context, userID string, rol
 		Subject:     userID,
 		Relation:    policies.MemberRelation,
 		ObjectType:  policies.PlatformType,
-		Object:      policies.MagistralaObject,
+		Object:      policies.SuperMQObject,
 	})
 
 	if role == AdminRole {
@@ -652,7 +652,7 @@ func (svc service) addUserPolicyRollback(ctx context.Context, userID string, rol
 			Subject:     userID,
 			Relation:    policies.AdministratorRelation,
 			ObjectType:  policies.PlatformType,
-			Object:      policies.MagistralaObject,
+			Object:      policies.SuperMQObject,
 		})
 	}
 	err := svc.policies.DeletePolicies(ctx, policyList)
@@ -671,7 +671,7 @@ func (svc service) updateUserPolicy(ctx context.Context, userID string, role Rol
 			Subject:     userID,
 			Relation:    policies.AdministratorRelation,
 			ObjectType:  policies.PlatformType,
-			Object:      policies.MagistralaObject,
+			Object:      policies.SuperMQObject,
 		})
 		if err != nil {
 			return errors.Wrap(svcerr.ErrAddPolicies, err)
@@ -686,7 +686,7 @@ func (svc service) updateUserPolicy(ctx context.Context, userID string, role Rol
 			Subject:     userID,
 			Relation:    policies.AdministratorRelation,
 			ObjectType:  policies.PlatformType,
-			Object:      policies.MagistralaObject,
+			Object:      policies.SuperMQObject,
 		})
 		if err != nil {
 			return errors.Wrap(svcerr.ErrDeletePolicies, err)

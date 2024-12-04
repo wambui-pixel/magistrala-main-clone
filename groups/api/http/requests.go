@@ -4,14 +4,13 @@
 package api
 
 import (
-	"github.com/absmach/magistrala/groups"
-	mggroups "github.com/absmach/magistrala/groups"
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/pkg/apiutil"
+	"github.com/absmach/supermq/groups"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/pkg/apiutil"
 )
 
 type createGroupReq struct {
-	mggroups.Group
+	groups.Group
 }
 
 func (req createGroupReq) validate() error {
@@ -40,7 +39,7 @@ func (req updateGroupReq) validate() error {
 }
 
 type listGroupsReq struct {
-	mggroups.PageMeta
+	groups.PageMeta
 	userID  string
 	groupID string
 }
@@ -80,7 +79,7 @@ func (req changeGroupStatusReq) validate() error {
 }
 
 type retrieveGroupHierarchyReq struct {
-	mggroups.HierarchyPageMeta
+	groups.HierarchyPageMeta
 	id string
 }
 
@@ -182,7 +181,7 @@ type listChildrenGroupsReq struct {
 	id         string
 	startLevel int64
 	endLevel   int64
-	mggroups.PageMeta
+	groups.PageMeta
 }
 
 func (req listChildrenGroupsReq) validate() error {

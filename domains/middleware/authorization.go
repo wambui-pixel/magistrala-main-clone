@@ -6,26 +6,26 @@ package middleware
 import (
 	"context"
 
-	"github.com/absmach/magistrala/domains"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/authz"
-	mgauthz "github.com/absmach/magistrala/pkg/authz"
-	"github.com/absmach/magistrala/pkg/policies"
-	rmMW "github.com/absmach/magistrala/pkg/roles/rolemanager/middleware"
-	"github.com/absmach/magistrala/pkg/svcutil"
+	"github.com/absmach/supermq/domains"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/authz"
+	smqauthz "github.com/absmach/supermq/pkg/authz"
+	"github.com/absmach/supermq/pkg/policies"
+	rmMW "github.com/absmach/supermq/pkg/roles/rolemanager/middleware"
+	"github.com/absmach/supermq/pkg/svcutil"
 )
 
 var _ domains.Service = (*authorizationMiddleware)(nil)
 
 type authorizationMiddleware struct {
 	svc   domains.Service
-	authz mgauthz.Authorization
+	authz smqauthz.Authorization
 	opp   svcutil.OperationPerm
 	rmMW.RoleManagerAuthorizationMiddleware
 }
 
 // AuthorizationMiddleware adds authorization to the clients service.
-func AuthorizationMiddleware(entityType string, svc domains.Service, authz mgauthz.Authorization, domainsOpPerm, rolesOpPerm map[svcutil.Operation]svcutil.Permission) (domains.Service, error) {
+func AuthorizationMiddleware(entityType string, svc domains.Service, authz smqauthz.Authorization, domainsOpPerm, rolesOpPerm map[svcutil.Operation]svcutil.Permission) (domains.Service, error) {
 	opp := domains.NewOperationPerm()
 	if err := opp.AddOperationPermissionMap(domainsOpPerm); err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (am *authorizationMiddleware) ListDomains(ctx context.Context, session auth
 		SubjectType: policies.UserType,
 		Permission:  policies.AdminPermission,
 		ObjectType:  policies.PlatformType,
-		Object:      policies.MagistralaObject,
+		Object:      policies.SuperMQObject,
 	}); err == nil {
 		session.SuperAdmin = true
 	}

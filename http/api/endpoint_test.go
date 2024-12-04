@@ -11,23 +11,23 @@ import (
 	"strings"
 	"testing"
 
-	chmocks "github.com/absmach/magistrala/channels/mocks"
-	climocks "github.com/absmach/magistrala/clients/mocks"
-	server "github.com/absmach/magistrala/http"
-	"github.com/absmach/magistrala/http/api"
-	grpcChannelsV1 "github.com/absmach/magistrala/internal/grpc/channels/v1"
-	grpcClientsV1 "github.com/absmach/magistrala/internal/grpc/clients/v1"
-	"github.com/absmach/magistrala/internal/testsutil"
-	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	mgauthn "github.com/absmach/magistrala/pkg/authn"
-	authnMocks "github.com/absmach/magistrala/pkg/authn/mocks"
-	"github.com/absmach/magistrala/pkg/connections"
-	pubsub "github.com/absmach/magistrala/pkg/messaging/mocks"
-	"github.com/absmach/magistrala/pkg/policies"
 	"github.com/absmach/mgate"
 	proxy "github.com/absmach/mgate/pkg/http"
 	"github.com/absmach/mgate/pkg/session"
+	chmocks "github.com/absmach/supermq/channels/mocks"
+	climocks "github.com/absmach/supermq/clients/mocks"
+	server "github.com/absmach/supermq/http"
+	"github.com/absmach/supermq/http/api"
+	grpcChannelsV1 "github.com/absmach/supermq/internal/grpc/channels/v1"
+	grpcClientsV1 "github.com/absmach/supermq/internal/grpc/clients/v1"
+	"github.com/absmach/supermq/internal/testsutil"
+	smqlog "github.com/absmach/supermq/logger"
+	"github.com/absmach/supermq/pkg/apiutil"
+	smqauthn "github.com/absmach/supermq/pkg/authn"
+	authnMocks "github.com/absmach/supermq/pkg/authn/mocks"
+	"github.com/absmach/supermq/pkg/connections"
+	pubsub "github.com/absmach/supermq/pkg/messaging/mocks"
+	"github.com/absmach/supermq/pkg/policies"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -39,13 +39,13 @@ const (
 
 var clientID = testsutil.GenerateUUID(&testing.T{})
 
-func newService(authn mgauthn.Authentication, clients grpcClientsV1.ClientsServiceClient, channels grpcChannelsV1.ChannelsServiceClient) (session.Handler, *pubsub.PubSub) {
+func newService(authn smqauthn.Authentication, clients grpcClientsV1.ClientsServiceClient, channels grpcChannelsV1.ChannelsServiceClient) (session.Handler, *pubsub.PubSub) {
 	pub := new(pubsub.PubSub)
-	return server.NewHandler(pub, authn, clients, channels, mglog.NewMock()), pub
+	return server.NewHandler(pub, authn, clients, channels, smqlog.NewMock()), pub
 }
 
 func newTargetHTTPServer() *httptest.Server {
-	mux := api.MakeHandler(mglog.NewMock(), instanceID)
+	mux := api.MakeHandler(smqlog.NewMock(), instanceID)
 	return httptest.NewServer(mux)
 }
 
@@ -54,7 +54,7 @@ func newProxyHTPPServer(svc session.Handler, targetServer *httptest.Server) (*ht
 		Address: "",
 		Target:  targetServer.URL,
 	}
-	mp, err := proxy.NewProxy(config, svc, mglog.NewMock())
+	mp, err := proxy.NewProxy(config, svc, smqlog.NewMock())
 	if err != nil {
 		return nil, err
 	}

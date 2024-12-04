@@ -6,26 +6,26 @@ package middleware
 import (
 	"context"
 
-	mgauth "github.com/absmach/magistrala/auth"
-	grpcTokenV1 "github.com/absmach/magistrala/internal/grpc/token/v1"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/authz"
-	mgauthz "github.com/absmach/magistrala/pkg/authz"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/users"
+	smqauth "github.com/absmach/supermq/auth"
+	grpcTokenV1 "github.com/absmach/supermq/internal/grpc/token/v1"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/authz"
+	smqauthz "github.com/absmach/supermq/pkg/authz"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/users"
 )
 
 var _ users.Service = (*authorizationMiddleware)(nil)
 
 type authorizationMiddleware struct {
 	svc          users.Service
-	authz        mgauthz.Authorization
+	authz        smqauthz.Authorization
 	selfRegister bool
 }
 
 // AuthorizationMiddleware adds authorization to the clients service.
-func AuthorizationMiddleware(svc users.Service, authz mgauthz.Authorization, selfRegister bool) users.Service {
+func AuthorizationMiddleware(svc users.Service, authz smqauthz.Authorization, selfRegister bool) users.Service {
 	return &authorizationMiddleware{
 		svc:          svc,
 		authz:        authz,
@@ -69,15 +69,15 @@ func (am *authorizationMiddleware) ListMembers(ctx context.Context, session auth
 	}
 	switch objectKind {
 	case policies.GroupsKind:
-		if err := am.authorize(ctx, session.DomainID, policies.UserType, policies.UsersKind, session.DomainUserID, mgauth.SwitchToPermission(pm.Permission), policies.GroupType, objectID); err != nil {
+		if err := am.authorize(ctx, session.DomainID, policies.UserType, policies.UsersKind, session.DomainUserID, smqauth.SwitchToPermission(pm.Permission), policies.GroupType, objectID); err != nil {
 			return users.MembersPage{}, err
 		}
 	case policies.DomainsKind:
-		if err := am.authorize(ctx, session.DomainID, policies.UserType, policies.UsersKind, session.DomainUserID, mgauth.SwitchToPermission(pm.Permission), policies.DomainType, objectID); err != nil {
+		if err := am.authorize(ctx, session.DomainID, policies.UserType, policies.UsersKind, session.DomainUserID, smqauth.SwitchToPermission(pm.Permission), policies.DomainType, objectID); err != nil {
 			return users.MembersPage{}, err
 		}
 	case policies.ClientsKind:
-		if err := am.authorize(ctx, session.DomainID, policies.UserType, policies.UsersKind, session.UserID, mgauth.SwitchToPermission(pm.Permission), policies.ClientType, objectID); err != nil {
+		if err := am.authorize(ctx, session.DomainID, policies.UserType, policies.UsersKind, session.UserID, smqauth.SwitchToPermission(pm.Permission), policies.ClientType, objectID); err != nil {
 			return users.MembersPage{}, err
 		}
 	default:
@@ -151,7 +151,7 @@ func (am *authorizationMiddleware) UpdateRole(ctx context.Context, session authn
 		return users.User{}, err
 	}
 	session.SuperAdmin = true
-	if err := am.authorize(ctx, "", policies.UserType, policies.UsersKind, user.ID, policies.MembershipPermission, policies.PlatformType, policies.MagistralaObject); err != nil {
+	if err := am.authorize(ctx, "", policies.UserType, policies.UsersKind, user.ID, policies.MembershipPermission, policies.PlatformType, policies.SuperMQObject); err != nil {
 		return users.User{}, err
 	}
 
@@ -199,7 +199,7 @@ func (am *authorizationMiddleware) OAuthCallback(ctx context.Context, user users
 }
 
 func (am *authorizationMiddleware) OAuthAddUserPolicy(ctx context.Context, user users.User) error {
-	if err := am.authorize(ctx, "", policies.UserType, policies.UsersKind, user.ID, policies.MembershipPermission, policies.PlatformType, policies.MagistralaObject); err == nil {
+	if err := am.authorize(ctx, "", policies.UserType, policies.UsersKind, user.ID, policies.MembershipPermission, policies.PlatformType, policies.SuperMQObject); err == nil {
 		return nil
 	}
 	return am.svc.OAuthAddUserPolicy(ctx, user)
@@ -211,7 +211,7 @@ func (am *authorizationMiddleware) checkSuperAdmin(ctx context.Context, adminID 
 		Subject:     adminID,
 		Permission:  policies.AdminPermission,
 		ObjectType:  policies.PlatformType,
-		Object:      policies.MagistralaObject,
+		Object:      policies.SuperMQObject,
 	}); err != nil {
 		return err
 	}

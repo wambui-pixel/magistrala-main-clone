@@ -6,11 +6,11 @@ package http
 import (
 	"strings"
 
-	"github.com/absmach/magistrala/channels"
-	mgclients "github.com/absmach/magistrala/clients"
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/connections"
+	"github.com/absmach/supermq/channels"
+	smqclients "github.com/absmach/supermq/clients"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/connections"
 )
 
 type createChannelReq struct {
@@ -64,7 +64,7 @@ func (req viewChannelReq) validate() error {
 }
 
 type listChannelsReq struct {
-	status     mgclients.Status
+	status     smqclients.Status
 	offset     uint64
 	limit      uint64
 	name       string
@@ -73,7 +73,7 @@ type listChannelsReq struct {
 	visibility string
 	userID     string
 	listPerms  bool
-	metadata   mgclients.Metadata
+	metadata   smqclients.Metadata
 	id         string
 }
 

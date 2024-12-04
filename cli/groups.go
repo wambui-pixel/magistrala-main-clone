@@ -6,8 +6,8 @@ package cli
 import (
 	"encoding/json"
 
-	"github.com/absmach/magistrala/groups"
-	mgxsdk "github.com/absmach/magistrala/pkg/sdk/go"
+	"github.com/absmach/supermq/groups"
+	smqsdk "github.com/absmach/supermq/pkg/sdk/go"
 	"github.com/spf13/cobra"
 )
 
@@ -17,13 +17,13 @@ var cmdGroups = []cobra.Command{
 		Short: "Create group",
 		Long: "Creates new group\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups create '{\"name\":\"new group\", \"description\":\"new group description\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli groups create '{\"name\":\"new group\", \"description\":\"new group description\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			var group mgxsdk.Group
+			var group smqsdk.Group
 			if err := json.Unmarshal([]byte(args[0]), &group); err != nil {
 				logErrorCmd(*cmd, err)
 				return
@@ -42,14 +42,14 @@ var cmdGroups = []cobra.Command{
 		Short: "Update group",
 		Long: "Updates group\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups update '{\"id\":\"<group_id>\", \"name\":\"new group\", \"description\":\"new group description\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli groups update '{\"id\":\"<group_id>\", \"name\":\"new group\", \"description\":\"new group description\", \"metadata\":{\"key\": \"value\"}}' $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
 
-			var group mgxsdk.Group
+			var group smqsdk.Group
 			if err := json.Unmarshal([]byte(args[0]), &group); err != nil {
 				logErrorCmd(*cmd, err)
 				return
@@ -69,10 +69,10 @@ var cmdGroups = []cobra.Command{
 		Short: "Get group",
 		Long: "Get all users groups, group children or group by id.\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups get all $DOMAINID $USERTOKEN - lists all groups\n" +
-			"\tmagistrala-cli groups get children <group_id> $DOMAINID $USERTOKEN - lists all children groups of <group_id>\n" +
-			"\tmagistrala-cli groups get parents <group_id> $DOMAINID $USERTOKEN - lists all parent groups of <group_id>\n" +
-			"\tmagistrala-cli groups get <group_id> $DOMAINID $USERTOKEN - shows group with provided group ID\n",
+			"\tsupermq-cli groups get all $DOMAINID $USERTOKEN - lists all groups\n" +
+			"\tsupermq-cli groups get children <group_id> $DOMAINID $USERTOKEN - lists all children groups of <group_id>\n" +
+			"\tsupermq-cli groups get parents <group_id> $DOMAINID $USERTOKEN - lists all parent groups of <group_id>\n" +
+			"\tsupermq-cli groups get <group_id> $DOMAINID $USERTOKEN - shows group with provided group ID\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) < 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -83,7 +83,7 @@ var cmdGroups = []cobra.Command{
 					logUsageCmd(*cmd, cmd.Use)
 					return
 				}
-				pm := mgxsdk.PageMetadata{
+				pm := smqsdk.PageMetadata{
 					Offset: Offset,
 					Limit:  Limit,
 				}
@@ -100,7 +100,7 @@ var cmdGroups = []cobra.Command{
 					logUsageCmd(*cmd, cmd.Use)
 					return
 				}
-				pm := mgxsdk.PageMetadata{
+				pm := smqsdk.PageMetadata{
 					Offset:   Offset,
 					Limit:    Limit,
 					DomainID: args[2],
@@ -118,7 +118,7 @@ var cmdGroups = []cobra.Command{
 					logUsageCmd(*cmd, cmd.Use)
 					return
 				}
-				pm := mgxsdk.PageMetadata{
+				pm := smqsdk.PageMetadata{
 					Offset: Offset,
 					Limit:  Limit,
 				}
@@ -147,7 +147,7 @@ var cmdGroups = []cobra.Command{
 		Short: "Delete group",
 		Long: "Delete group by id.\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups delete <group_id> $DOMAINID $USERTOKEN - delete the given group ID\n",
+			"\tsupermq-cli groups delete <group_id> $DOMAINID $USERTOKEN - delete the given group ID\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -165,13 +165,13 @@ var cmdGroups = []cobra.Command{
 		Short: "List users",
 		Long: "List users in a group\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups users <group_id> $DOMAINID $USERTOKEN",
+			"\tsupermq-cli groups users <group_id> $DOMAINID $USERTOKEN",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			pm := mgxsdk.PageMetadata{
+			pm := smqsdk.PageMetadata{
 				Offset: Offset,
 				Limit:  Limit,
 				Status: Status,
@@ -189,13 +189,13 @@ var cmdGroups = []cobra.Command{
 		Short: "List channels",
 		Long: "List channels in a group\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups channels <group_id> $DOMAINID $USERTOKEN",
+			"\tsupermq-cli groups channels <group_id> $DOMAINID $USERTOKEN",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
 				return
 			}
-			pm := mgxsdk.PageMetadata{
+			pm := smqsdk.PageMetadata{
 				Offset: Offset,
 				Limit:  Limit,
 				Status: Status,
@@ -213,7 +213,7 @@ var cmdGroups = []cobra.Command{
 		Short: "Change group status to enabled",
 		Long: "Change group status to enabled\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups enable <group_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli groups enable <group_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -234,7 +234,7 @@ var cmdGroups = []cobra.Command{
 		Short: "Change group status to disabled",
 		Long: "Change group status to disabled\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups disable <group_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli groups disable <group_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 3 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -258,7 +258,7 @@ var groupAssignCmds = []cobra.Command{
 		Short: "Assign users",
 		Long: "Assign users to a group\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups assign users <relation> '[\"<user_id_1>\", \"<user_id_2>\"]' <group_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli groups assign users <relation> '[\"<user_id_1>\", \"<user_id_2>\"]' <group_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 5 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -269,7 +269,7 @@ var groupAssignCmds = []cobra.Command{
 				logErrorCmd(*cmd, err)
 				return
 			}
-			if err := sdk.AddUserToGroup(args[2], mgxsdk.UsersRelationRequest{Relation: args[0], UserIDs: userIDs}, args[3], args[4]); err != nil {
+			if err := sdk.AddUserToGroup(args[2], smqsdk.UsersRelationRequest{Relation: args[0], UserIDs: userIDs}, args[3], args[4]); err != nil {
 				logErrorCmd(*cmd, err)
 				return
 			}
@@ -284,7 +284,7 @@ var groupUnassignCmds = []cobra.Command{
 		Short: "Unassign users",
 		Long: "Unassign users from a group\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli groups unassign users <relation> '[\"<user_id_1>\", \"<user_id_2>\"]' <group_id> $DOMAINID $USERTOKEN\n",
+			"\tsupermq-cli groups unassign users <relation> '[\"<user_id_1>\", \"<user_id_2>\"]' <group_id> $DOMAINID $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) != 5 {
 				logUsageCmd(*cmd, cmd.Use)
@@ -295,7 +295,7 @@ var groupUnassignCmds = []cobra.Command{
 				logErrorCmd(*cmd, err)
 				return
 			}
-			if err := sdk.RemoveUserFromGroup(args[2], mgxsdk.UsersRelationRequest{Relation: args[0], UserIDs: userIDs}, args[3], args[4]); err != nil {
+			if err := sdk.RemoveUserFromGroup(args[2], smqsdk.UsersRelationRequest{Relation: args[0], UserIDs: userIDs}, args[3], args[4]); err != nil {
 				logErrorCmd(*cmd, err)
 				return
 			}

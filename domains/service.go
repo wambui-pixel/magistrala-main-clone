@@ -7,12 +7,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/pkg/authn"
-	"github.com/absmach/magistrala/pkg/errors"
-	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-	"github.com/absmach/magistrala/pkg/policies"
-	"github.com/absmach/magistrala/pkg/roles"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/pkg/authn"
+	"github.com/absmach/supermq/pkg/errors"
+	svcerr "github.com/absmach/supermq/pkg/errors/service"
+	"github.com/absmach/supermq/pkg/policies"
+	"github.com/absmach/supermq/pkg/roles"
 )
 
 const defLimit = 100
@@ -25,13 +25,13 @@ var (
 type service struct {
 	repo       Repository
 	policy     policies.Service
-	idProvider magistrala.IDProvider
+	idProvider supermq.IDProvider
 	roles.ProvisionManageService
 }
 
 var _ Service = (*service)(nil)
 
-func New(repo Repository, policy policies.Service, idProvider magistrala.IDProvider, sidProvider magistrala.IDProvider) (Service, error) {
+func New(repo Repository, policy policies.Service, idProvider supermq.IDProvider, sidProvider supermq.IDProvider) (Service, error) {
 	rpms, err := roles.NewProvisionManageService(policies.DomainType, repo, policy, sidProvider, AvailableActions(), BuiltInRoles())
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (svc service) CreateDomain(ctx context.Context, session authn.Session, d Do
 
 	optionalPolicies := []policies.Policy{
 		{
-			Subject:     policies.MagistralaObject,
+			Subject:     policies.SuperMQObject,
 			SubjectType: policies.PlatformType,
 			Relation:    "organization",
 			Object:      d.ID,

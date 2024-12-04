@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/errors"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	PasswordResetEndpoint = "password"
 )
 
-// User represents magistrala user its credentials.
+// User represents supermq user its credentials.
 type User struct {
 	ID             string      `json:"id"`
 	FirstName      string      `json:"first_name,omitempty"`

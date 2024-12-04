@@ -5,9 +5,9 @@ package tracing
 import (
 	"context"
 
-	"github.com/absmach/magistrala/pkg/messaging"
-	"github.com/absmach/magistrala/pkg/messaging/tracing"
-	"github.com/absmach/magistrala/pkg/server"
+	"github.com/absmach/supermq/pkg/messaging"
+	"github.com/absmach/supermq/pkg/messaging/tracing"
+	"github.com/absmach/supermq/pkg/server"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -19,7 +19,7 @@ var defaultAttributes = []attribute.KeyValue{
 	attribute.String("messaging.system", "rabbitmq"),
 	attribute.String("network.protocol.name", "amqp"),
 	attribute.String("network.protocol.version", "3.9.20"),
-	attribute.String("messaging.rabbitmq.destination.routing_key", "magistrala"),
+	attribute.String("messaging.rabbitmq.destination.routing_key", "supermq"),
 }
 
 var _ messaging.Publisher = (*publisherMiddleware)(nil)

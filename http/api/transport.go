@@ -9,11 +9,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/internal/api"
-	"github.com/absmach/magistrala/pkg/apiutil"
-	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/absmach/magistrala/pkg/messaging"
+	"github.com/absmach/supermq"
+	"github.com/absmach/supermq/internal/api"
+	"github.com/absmach/supermq/pkg/apiutil"
+	"github.com/absmach/supermq/pkg/errors"
+	"github.com/absmach/supermq/pkg/messaging"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -46,7 +46,7 @@ func MakeHandler(logger *slog.Logger, instanceID string) http.Handler {
 		api.EncodeResponse,
 		opts...,
 	), "publish").ServeHTTP)
-	r.Get("/health", magistrala.Health("http", instanceID))
+	r.Get("/health", supermq.Health("http", instanceID))
 	r.Handle("/metrics", promhttp.Handler())
 
 	return r
