@@ -152,7 +152,17 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-
+      
+      - name: Run Groups API tests
+        if: steps.changes.outputs.groups == 'true'
+        uses: schemathesis/action@v1
+        with:
+          schema: api/openapi/groups.yml
+          base-url: ${{ env.GROUPS_URL }}
+          checks: all
+          report: false
+          args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
+          
       - name: Run Clients API tests
         if: steps.changes.outputs.clients == 'true'
         uses: schemathesis/action@v1
