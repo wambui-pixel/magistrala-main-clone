@@ -32,12 +32,13 @@ env:
   USER_SECRET: 12345678
   DOMAIN_NAME: demo-test
   USERS_URL: http://localhost:9002
+  DOMAIN_URL: http://localhost:9003
   CLIENTS_URL: http://localhost:9006
   CHANNELS_URL: http://localhost:9005
   GROUPS_URL: http://localhost:9004
   HTTP_ADAPTER_URL: http://localhost:8008
   INVITATIONS_URL: http://localhost:9020
-  AUTH_URL: http://localhost:8189
+  AUTH_URL: http://localhost:9001
   BOOTSTRAP_URL: http://localhost:9013
   CERTS_URL: http://localhost:9019
   PROVISION_URL: http://localhost:9016
@@ -201,7 +202,17 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-
+      
+      - name: Run Domains API tests
+        if: steps.changes.outputs.domains == 'true'
+        uses: schemathesis/action@v1
+        with:
+          schema: api/openapi/domains.yml
+          base-url: ${{ env.DOMAIN_URL }}
+          checks: all
+          report: false
+          args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
+          
       - name: Run Journal API tests
         if: steps.changes.outputs.journal == 'true'
         uses: schemathesis/action@v1
