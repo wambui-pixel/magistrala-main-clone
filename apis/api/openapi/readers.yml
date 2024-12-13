@@ -3,17 +3,17 @@
 
 openapi: 3.0.1
 info:
-  title: Magistrala reader service
+  title: SuperMQ reader service
   description: |
     HTTP API for reading messages.
     Some useful links:
-    - [The Magistrala repository](https://github.com/absmach/magistrala)
+    - [The SuperMQ repository](https://github.com/absmach/supermq)
   contact:
     email: info@abstractmachines.fr
   license:
     name: Apache 2.0
-    url: https://github.com/absmach/magistrala/blob/main/LICENSE
-  version: 0.14.0
+    url: https://github.com/absmach/supermq/blob/main/LICENSE
+  version: 0.15.1
 
 servers:
   - url: http://localhost:9003
@@ -32,7 +32,7 @@ tags:
     description: Everything about your Readers
     externalDocs:
       description: Find out more about readers
-      url: https://docs.magistrala.abstractmachines.fr/
+      url: https://docs.supermq.abstractmachines.fr/
 
 paths:
   /channels/{chanId}/messages:
@@ -75,6 +75,7 @@ paths:
       summary: Retrieves service health check info.
       tags:
         - health
+      security: []
       responses:
         "200":
           $ref: "#/components/responses/HealthRes"
@@ -140,6 +141,14 @@ components:
                 description: Time of updating measurement.
 
   parameters:
+    DomainID:
+      name: domainID
+      description: Unique domain identifier.
+      in: path
+      schema:
+        type: string
+        format: uuid
+      required: true
     ChanId:
       name: chanId
       description: Unique channel identifier.
@@ -169,7 +178,7 @@ components:
       required: false
     Publisher:
       name: Publisher
-      description: Unique thing identifier.
+      description: Unique client identifier.
       in: query
       schema:
         type: string
@@ -282,7 +291,7 @@ components:
       content:
         application/health+json:
           schema:
-            $ref: "./schemas/HealthInfo.yml"
+            $ref: "./schemas/health_info.yml"
 
   securitySchemes:
     bearerAuth:
@@ -292,13 +301,13 @@ components:
       description: |
         * Users access: "Authorization: Bearer <user_token>"
 
-    thingAuth:
+    clientAuth:
       type: http
       scheme: bearer
       bearerFormat: uuid
       description: |
-        * Things access: "Authorization: Thing <thing_key>"
+        * Clients access: "Authorization: Client <client_key>"
 
 security:
   - bearerAuth: []
-  - thingAuth: []
+  - clientAuth: []

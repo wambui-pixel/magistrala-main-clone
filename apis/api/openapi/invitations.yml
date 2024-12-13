@@ -3,17 +3,17 @@
 
 openapi: 3.0.3
 info:
-  title: Magistrala Invitations Service
+  title: SuperMQ Invitations Service
   description: |
     This is the Invitations Server based on the OpenAPI 3.0 specification.  It is the HTTP API for managing platform invitations. You can now help us improve the API whether it's by making changes to the definition itself or to the code.
     Some useful links:
-    - [The Magistrala repository](https://github.com/absmach/magistrala)
+    - [The SuperMQ repository](https://github.com/absmach/supermq)
   contact:
     email: info@abstractmachines.fr
   license:
     name: Apache 2.0
-    url: https://github.com/absmach/magistrala/blob/main/LICENSE
-  version: 0.14.0
+    url: https://github.com/absmach/supermq/blob/main/LICENSE
+  version: 0.15.1
 
 servers:
   - url: http://localhost:9020
@@ -24,7 +24,7 @@ tags:
     description: Everything about your Invitations
     externalDocs:
       description: Find out more about Invitations
-      url: https://docs.magistrala.abstractmachines.fr/
+      url: https://docs.supermq.abstractmachines.fr/
 
 paths:
   /invitations:
@@ -46,6 +46,8 @@ paths:
           description: Failed due to malformed JSON.
         "401":
           description: Missing or invalid access token provided.
+        "403":
+          description: Failed to perform authorization over the entity.
         "404":
           description: A non-existent entity request.
         "409":
@@ -84,6 +86,8 @@ paths:
           description: |
             Missing or invalid access token provided.
             This endpoint is available only for administrators.
+        "403":
+          description: Failed to perform authorization over the entity.
         "404":
           description: A non-existent entity request.
         "422":
@@ -104,8 +108,32 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/AcceptInvitationReq"
       responses:
-        "200":
+        "204":
           description: Invitation accepted.
+        "400":
+          description: Failed due to malformed query parameters.
+        "401":
+          description: Missing or invalid access token provided.
+        "404":
+          description: A non-existent entity request.
+        "500":
+          $ref: "#/components/responses/ServiceError"
+
+  /invitations/reject:
+    post:
+      operationId: rejectInvitation
+      summary: Reject invitation
+      description: |
+        Current logged in user rejects invitation to join domain.
+      tags:
+        - Invitations
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/AcceptInvitationReq"
+      responses:
+        "204":
+          description: Invitation rejected.
         "400":
           description: Failed due to malformed query parameters.
         "401":
@@ -135,6 +163,8 @@ paths:
           description: Failed due to malformed query parameters.
         "401":
           description: Missing or invalid access token provided.
+        "403":
+          description: Failed to perform authorization over the entity.
         "404":
           description: A non-existent entity request.
         "422":
@@ -159,6 +189,8 @@ paths:
           description: Invitation deleted.
         "400":
           description: Failed due to malformed JSON.
+        "403":
+          description: Failed to perform authorization over the entity.
         "404":
           description: Failed due to non existing user.
         "401":
@@ -171,6 +203,7 @@ paths:
       summary: Retrieves service health check info.
       tags:
         - health
+      security: []
       responses:
         "200":
           $ref: "#/components/responses/HealthRes"
