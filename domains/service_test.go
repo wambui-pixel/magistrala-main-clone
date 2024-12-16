@@ -183,6 +183,9 @@ func TestCreateDomain(t *testing.T) {
 func TestRetrieveDomain(t *testing.T) {
 	svc := newService()
 
+	superAdminSession := validSession
+	superAdminSession.SuperAdmin = true
+
 	cases := []struct {
 		desc              string
 		session           authn.Session
@@ -192,7 +195,14 @@ func TestRetrieveDomain(t *testing.T) {
 		err               error
 	}{
 		{
-			desc:              "retrieve domain successfully",
+			desc:              "retrieve domain successfully as super admin",
+			session:           superAdminSession,
+			domainID:          validID,
+			retrieveDomainRes: domain,
+			err:               nil,
+		},
+		{
+			desc:              "retrieve domain successfully as non super admin",
 			session:           validSession,
 			domainID:          validID,
 			retrieveDomainRes: domain,
@@ -217,10 +227,12 @@ func TestRetrieveDomain(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			repoCall := drepo.On("RetrieveByID", context.Background(), tc.domainID).Return(tc.retrieveDomainRes, tc.retrieveDomainErr)
+			repoCall1 := drepo.On("RetrieveByUserAndID", context.Background(), tc.session.UserID, tc.domainID).Return(tc.retrieveDomainRes, tc.retrieveDomainErr)
 			domain, err := svc.RetrieveDomain(context.Background(), tc.session, tc.domainID)
 			assert.True(t, errors.Contains(err, tc.err))
 			assert.Equal(t, tc.retrieveDomainRes, domain)
 			repoCall.Unset()
+			repoCall1.Unset()
 		})
 	}
 }

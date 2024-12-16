@@ -83,7 +83,7 @@ jobs:
               - "auth_grpc.pb.go"
               - "pkg/ulid/**"
               - "pkg/uuid/**"
-
+ 
             bootstrap:
               - "bootstrap/**"
               - "cmd/bootstrap/**"
@@ -100,11 +100,37 @@ jobs:
               - "auth_grpc.pb.go"
               - "auth/**"
               - "pkg/sdk/**"
+            
+            channels:
+              - "channels/**"
+              - "cmd/channels/**"
+              - "auth.pb.go"
+              - "auth_grpc.pb.go"
+              - "auth/**"
+              - "pkg/sdk/**"
+              - "clients/api/grpc/**"
+              - "groups/api/grpc/**"
+              - "domains/api/grpc/**"
+              - "internal/grpc/**"
 
             cli:
               - "cli/**"
               - "cmd/cli/**"
               - "pkg/sdk/**"
+
+            clients:
+              - "clients/**"
+              - "cmd/clients/**"
+              - "auth.pb.go"
+              - "auth_grpc.pb.go"
+              - "auth/**"
+              - "pkg/ulid/**"
+              - "pkg/uuid/**"
+              - "pkg/events/**"
+              - "groups/api/grpc/**"
+              - "channels/api/grpc/**"
+              - "domains/api/grpc/**"
+              - internal/grpc/**"
 
             coap:
               - "coap/**"
@@ -126,14 +152,27 @@ jobs:
               - "pkg/ulid/**"
               - "pkg/uuid/**"
               - "pkg/messaging/**"
-
-            journal:
-              - "journal/**"
-              - "cmd/journal/**"
+            
+            domains:
+              - "domain/**"
+              - "cmd/domain/**"
               - "auth.pb.go"
               - "auth_grpc.pb.go"
               - "auth/**"
-              - "pkg/events/**"
+              - "internal/grpc/**"
+
+            groups:
+              - "groups/**"
+              - "cmd/groups/**"
+              - "auth.pb.go"
+              - "auth_grpc.pb.go"
+              - "auth/**"
+              - "pkg/ulid/**"
+              - "pkg/uuid/**"
+              - "clients/api/grpc/**"
+              - "channels/api/grpc/**"
+              - "domains/api/grpc/**"
+              - "internal/grpc/**"
 
             http:
               - "http/**"
@@ -154,7 +193,15 @@ jobs:
               - "auth_grpc.pb.go"
               - "auth/**"
               - "pkg/sdk/**"
-
+            
+            journal:
+              - "journal/**"
+              - "cmd/journal/**"
+              - "auth.pb.go"
+              - "auth_grpc.pb.go"
+              - "auth/**"
+              - "pkg/events/**"
+            
             logger:
               - "logger/**"
 
@@ -224,16 +271,6 @@ jobs:
               - "clients/**"
               - "auth/**"
 
-            clients:
-              - "clients/**"
-              - "cmd/clients/**"
-              - "auth.pb.go"
-              - "auth_grpc.pb.go"
-              - "auth/**"
-              - "pkg/ulid/**"
-              - "pkg/uuid/**"
-              - "pkg/events/**"
-
             users:
               - "users/**"
               - "cmd/users/**"
@@ -256,7 +293,7 @@ jobs:
         run: |
           mkdir coverage
 
-      - name: Run Journal tests
+      - name: Run journal tests
         if: steps.changes.outputs.journal == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/journal.out ./journal/...
@@ -265,6 +302,11 @@ jobs:
         if: steps.changes.outputs.auth == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/auth.out ./auth/...
+      
+      - name: Run domains tests
+        if: steps.changes.outputs.domains == 'true' || steps.changes.outputs.workflow == 'true'
+        run: |
+          go test --race -v -count=1 -coverprofile=coverage/domains.out ./domains/...
 
       - name: Run bootstrap tests
         if: steps.changes.outputs.bootstrap == 'true' || steps.changes.outputs.workflow == 'true'
@@ -370,11 +412,21 @@ jobs:
         if: steps.changes.outputs.clients == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/clients.out ./clients/...
+      
+      - name: Run channels tests
+        if: steps.changes.outputs.channels == 'true' || steps.changes.outputs.workflow == 'true'
+        run: |
+          go test --race -v -count=1 -coverprofile=coverage/channels.out ./channels/...
 
       - name: Run users tests
         if: steps.changes.outputs.users == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/users.out ./users/...
+      
+      - name: Run groups tests
+        if: steps.changes.outputs.groups == 'true' || steps.changes.outputs.workflow == 'true'
+        run: |
+          go test --race -v -count=1 -coverprofile=coverage/groups.out ./groups/...
 
       - name: Run WebSocket tests
         if: steps.changes.outputs.ws == 'true' || steps.changes.outputs.workflow == 'true'
