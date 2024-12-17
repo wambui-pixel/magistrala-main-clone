@@ -90,6 +90,7 @@ func (svc service) CreateGroup(ctx context.Context, session smqauthn.Session, g 
 			Subject:     saved.Parent,
 			Relation:    policies.ParentGroupRelation,
 			ObjectType:  policies.GroupType,
+			ObjectKind:  policies.NewGroupKind,
 			Object:      saved.ID,
 		})
 	}

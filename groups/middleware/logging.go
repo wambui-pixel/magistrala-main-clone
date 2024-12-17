@@ -197,9 +197,9 @@ func (lm *loggingMiddleware) RetrieveGroupHierarchy(ctx context.Context, session
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("group_id", id),
 			slog.Group("page",
-				slog.Uint64("limit", hm.Level),
-				slog.Int64("offset", hm.Direction),
-				slog.Bool("total", hm.Tree),
+				slog.Uint64("level", hm.Level),
+				slog.Int64("direction", hm.Direction),
+				slog.Bool("tree", hm.Tree),
 			),
 		}
 		if err != nil {

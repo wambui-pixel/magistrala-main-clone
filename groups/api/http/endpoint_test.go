@@ -1066,12 +1066,21 @@ func TestRetrieveGroupHierarchyEndpoint(t *testing.T) {
 	gs, svc, authn := newGroupsServer()
 	defer gs.Close()
 
-	retrieveHierarchRes := groups.HierarchyPage{
+	retrieveHierarchyRes := groups.HierarchyPage{
 		Groups: []groups.Group{validGroupResp},
 		HierarchyPageMeta: groups.HierarchyPageMeta{
 			Level:     1,
 			Direction: -1,
 			Tree:      false,
+		},
+	}
+
+	treeHierarchyRes := groups.HierarchyPage{
+		Groups: []groups.Group{validGroupResp},
+		HierarchyPageMeta: groups.HierarchyPageMeta{
+			Level:     1,
+			Direction: -1,
+			Tree:      true,
 		},
 	}
 
@@ -1100,7 +1109,23 @@ func TestRetrieveGroupHierarchyEndpoint(t *testing.T) {
 				Direction: -1,
 				Tree:      false,
 			},
-			svcRes: retrieveHierarchRes,
+			svcRes: retrieveHierarchyRes,
+			svcErr: nil,
+			status: http.StatusOK,
+			err:    nil,
+		},
+		{
+			desc:     "retrieve group hierarchy successfully with tree",
+			token:    validToken,
+			domainID: validID,
+			groupID:  validID,
+			query:    "level=1&dir=-1&tree=true",
+			pageMeta: groups.HierarchyPageMeta{
+				Level:     1,
+				Direction: -1,
+				Tree:      true,
+			},
+			svcRes: treeHierarchyRes,
 			svcErr: nil,
 			status: http.StatusOK,
 			err:    nil,
