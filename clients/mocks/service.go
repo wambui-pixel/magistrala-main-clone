@@ -21,22 +21,22 @@ type Service struct {
 }
 
 // AddRole provides a mock function with given fields: ctx, session, entityID, roleName, optionalActions, optionalMembers
-func (_m *Service) AddRole(ctx context.Context, session authn.Session, entityID string, roleName string, optionalActions []string, optionalMembers []string) (roles.Role, error) {
+func (_m *Service) AddRole(ctx context.Context, session authn.Session, entityID string, roleName string, optionalActions []string, optionalMembers []string) (roles.RoleProvision, error) {
 	ret := _m.Called(ctx, session, entityID, roleName, optionalActions, optionalMembers)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AddRole")
 	}
 
-	var r0 roles.Role
+	var r0 roles.RoleProvision
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, string, string, []string, []string) (roles.Role, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, string, string, []string, []string) (roles.RoleProvision, error)); ok {
 		return rf(ctx, session, entityID, roleName, optionalActions, optionalMembers)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, string, string, []string, []string) roles.Role); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, string, string, []string, []string) roles.RoleProvision); ok {
 		r0 = rf(ctx, session, entityID, roleName, optionalActions, optionalMembers)
 	} else {
-		r0 = ret.Get(0).(roles.Role)
+		r0 = ret.Get(0).(roles.RoleProvision)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, authn.Session, string, string, []string, []string) error); ok {
@@ -49,7 +49,7 @@ func (_m *Service) AddRole(ctx context.Context, session authn.Session, entityID 
 }
 
 // CreateClients provides a mock function with given fields: ctx, session, client
-func (_m *Service) CreateClients(ctx context.Context, session authn.Session, client ...clients.Client) ([]clients.Client, error) {
+func (_m *Service) CreateClients(ctx context.Context, session authn.Session, client ...clients.Client) ([]clients.Client, []roles.RoleProvision, error) {
 	_va := make([]interface{}, len(client))
 	for _i := range client {
 		_va[_i] = client[_i]
@@ -64,8 +64,9 @@ func (_m *Service) CreateClients(ctx context.Context, session authn.Session, cli
 	}
 
 	var r0 []clients.Client
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, ...clients.Client) ([]clients.Client, error)); ok {
+	var r1 []roles.RoleProvision
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, ...clients.Client) ([]clients.Client, []roles.RoleProvision, error)); ok {
 		return rf(ctx, session, client...)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, authn.Session, ...clients.Client) []clients.Client); ok {
@@ -76,13 +77,21 @@ func (_m *Service) CreateClients(ctx context.Context, session authn.Session, cli
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, authn.Session, ...clients.Client) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, authn.Session, ...clients.Client) []roles.RoleProvision); ok {
 		r1 = rf(ctx, session, client...)
 	} else {
-		r1 = ret.Error(1)
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]roles.RoleProvision)
+		}
 	}
 
-	return r0, r1
+	if rf, ok := ret.Get(2).(func(context.Context, authn.Session, ...clients.Client) error); ok {
+		r2 = rf(ctx, session, client...)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
 }
 
 // Delete provides a mock function with given fields: ctx, session, id

@@ -52,8 +52,8 @@ type Role struct {
 
 type RoleProvision struct {
 	Role
-	OptionalActions []string `json:"-"`
-	OptionalMembers []string `json:"-"`
+	OptionalActions []string `json:"optional_actions"`
+	OptionalMembers []string `json:"optional_members"`
 }
 
 type RolePage struct {
@@ -90,7 +90,7 @@ type Provisioner interface {
 //go:generate mockery --name RoleManager --output=./mocks --filename rolemanager.go --quiet --note "Copyright (c) Abstract Machines"
 type RoleManager interface {
 	// Add New role to entity
-	AddRole(ctx context.Context, session authn.Session, entityID, roleName string, optionalActions []string, optionalMembers []string) (Role, error)
+	AddRole(ctx context.Context, session authn.Session, entityID, roleName string, optionalActions []string, optionalMembers []string) (RoleProvision, error)
 
 	// Remove removes the roles of entity.
 	RemoveRole(ctx context.Context, session authn.Session, entityID, roleID string) error
@@ -129,7 +129,7 @@ type RoleManager interface {
 
 //go:generate mockery --name Repository --output=./mocks --filename rolesRepo.go --quiet --note "Copyright (c) Abstract Machines"
 type Repository interface {
-	AddRoles(ctx context.Context, rps []RoleProvision) ([]Role, error)
+	AddRoles(ctx context.Context, rps []RoleProvision) ([]RoleProvision, error)
 	RemoveRoles(ctx context.Context, roleIDs []string) error
 	UpdateRole(ctx context.Context, ro Role) (Role, error)
 	RetrieveRole(ctx context.Context, roleID string) (Role, error)
