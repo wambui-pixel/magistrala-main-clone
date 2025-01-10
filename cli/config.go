@@ -21,7 +21,6 @@ const (
 	defURL             string = "http://localhost"
 	defUsersURL        string = defURL + ":9002"
 	defCLientsURL      string = defURL + ":9000"
-	defReaderURL       string = defURL + ":9011"
 	defDomainsURL      string = defURL + ":8189"
 	defCertsURL        string = defURL + ":9019"
 	defInvitationsURL  string = defURL + ":9020"
@@ -37,7 +36,6 @@ const (
 type remotes struct {
 	ClientsURL      string `toml:"clients_url"`
 	UsersURL        string `toml:"users_url"`
-	ReaderURL       string `toml:"reader_url"`
 	DomainsURL      string `toml:"domains_url"`
 	HTTPAdapterURL  string `toml:"http_adapter_url"`
 	CertsURL        string `toml:"certs_url"`
@@ -107,7 +105,6 @@ func ParseConfig(sdkConf smqsdk.Config) (smqsdk.Config, error) {
 			Remotes: remotes{
 				ClientsURL:      defCLientsURL,
 				UsersURL:        defUsersURL,
-				ReaderURL:       defReaderURL,
 				DomainsURL:      defDomainsURL,
 				HTTPAdapterURL:  defHTTPURL,
 				CertsURL:        defCertsURL,
@@ -174,10 +171,6 @@ func ParseConfig(sdkConf smqsdk.Config) (smqsdk.Config, error) {
 
 	if sdkConf.UsersURL == "" && config.Remotes.UsersURL != "" {
 		sdkConf.UsersURL = config.Remotes.UsersURL
-	}
-
-	if sdkConf.ReaderURL == "" && config.Remotes.ReaderURL != "" {
-		sdkConf.ReaderURL = config.Remotes.ReaderURL
 	}
 
 	if sdkConf.DomainsURL == "" && config.Remotes.DomainsURL != "" {
@@ -253,7 +246,6 @@ func setConfigValue(key, value string) error {
 	configKeyToField := map[string]interface{}{
 		"clients_url":      &config.Remotes.ClientsURL,
 		"users_url":        &config.Remotes.UsersURL,
-		"reader_url":       &config.Remotes.ReaderURL,
 		"http_adapter_url": &config.Remotes.HTTPAdapterURL,
 		"certs_url":        &config.Remotes.CertsURL,
 		"tls_verification": &config.Remotes.TLSVerification,

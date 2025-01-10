@@ -1885,66 +1885,6 @@ func (_c *SDK_CreateGroupRole_Call) RunAndReturn(run func(string, string, sdk.Ro
 	return _c
 }
 
-// CreateSubscription provides a mock function with given fields: topic, contact, token
-func (_m *SDK) CreateSubscription(topic string, contact string, token string) (string, errors.SDKError) {
-	ret := _m.Called(topic, contact, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateSubscription")
-	}
-
-	var r0 string
-	var r1 errors.SDKError
-	if rf, ok := ret.Get(0).(func(string, string, string) (string, errors.SDKError)); ok {
-		return rf(topic, contact, token)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
-		r0 = rf(topic, contact, token)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, string) errors.SDKError); ok {
-		r1 = rf(topic, contact, token)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(errors.SDKError)
-		}
-	}
-
-	return r0, r1
-}
-
-// SDK_CreateSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSubscription'
-type SDK_CreateSubscription_Call struct {
-	*mock.Call
-}
-
-// CreateSubscription is a helper method to define mock.On call
-//   - topic string
-//   - contact string
-//   - token string
-func (_e *SDK_Expecter) CreateSubscription(topic interface{}, contact interface{}, token interface{}) *SDK_CreateSubscription_Call {
-	return &SDK_CreateSubscription_Call{Call: _e.mock.On("CreateSubscription", topic, contact, token)}
-}
-
-func (_c *SDK_CreateSubscription_Call) Run(run func(topic string, contact string, token string)) *SDK_CreateSubscription_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string), args[2].(string))
-	})
-	return _c
-}
-
-func (_c *SDK_CreateSubscription_Call) Return(_a0 string, _a1 errors.SDKError) *SDK_CreateSubscription_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *SDK_CreateSubscription_Call) RunAndReturn(run func(string, string, string) (string, errors.SDKError)) *SDK_CreateSubscription_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // CreateToken provides a mock function with given fields: lt
 func (_m *SDK) CreateToken(lt sdk.Login) (sdk.Token, errors.SDKError) {
 	ret := _m.Called(lt)
@@ -2408,55 +2348,6 @@ func (_c *SDK_DeleteInvitation_Call) Return(err error) *SDK_DeleteInvitation_Cal
 }
 
 func (_c *SDK_DeleteInvitation_Call) RunAndReturn(run func(string, string, string) error) *SDK_DeleteInvitation_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// DeleteSubscription provides a mock function with given fields: id, token
-func (_m *SDK) DeleteSubscription(id string, token string) errors.SDKError {
-	ret := _m.Called(id, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for DeleteSubscription")
-	}
-
-	var r0 errors.SDKError
-	if rf, ok := ret.Get(0).(func(string, string) errors.SDKError); ok {
-		r0 = rf(id, token)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(errors.SDKError)
-		}
-	}
-
-	return r0
-}
-
-// SDK_DeleteSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteSubscription'
-type SDK_DeleteSubscription_Call struct {
-	*mock.Call
-}
-
-// DeleteSubscription is a helper method to define mock.On call
-//   - id string
-//   - token string
-func (_e *SDK_Expecter) DeleteSubscription(id interface{}, token interface{}) *SDK_DeleteSubscription_Call {
-	return &SDK_DeleteSubscription_Call{Call: _e.mock.On("DeleteSubscription", id, token)}
-}
-
-func (_c *SDK_DeleteSubscription_Call) Run(run func(id string, token string)) *SDK_DeleteSubscription_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *SDK_DeleteSubscription_Call) Return(_a0 errors.SDKError) *SDK_DeleteSubscription_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *SDK_DeleteSubscription_Call) RunAndReturn(run func(string, string) errors.SDKError) *SDK_DeleteSubscription_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -4502,65 +4393,6 @@ func (_c *SDK_ListDomainUsers_Call) RunAndReturn(run func(string, sdk.PageMetada
 	return _c
 }
 
-// ListSubscriptions provides a mock function with given fields: pm, token
-func (_m *SDK) ListSubscriptions(pm sdk.PageMetadata, token string) (sdk.SubscriptionPage, errors.SDKError) {
-	ret := _m.Called(pm, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListSubscriptions")
-	}
-
-	var r0 sdk.SubscriptionPage
-	var r1 errors.SDKError
-	if rf, ok := ret.Get(0).(func(sdk.PageMetadata, string) (sdk.SubscriptionPage, errors.SDKError)); ok {
-		return rf(pm, token)
-	}
-	if rf, ok := ret.Get(0).(func(sdk.PageMetadata, string) sdk.SubscriptionPage); ok {
-		r0 = rf(pm, token)
-	} else {
-		r0 = ret.Get(0).(sdk.SubscriptionPage)
-	}
-
-	if rf, ok := ret.Get(1).(func(sdk.PageMetadata, string) errors.SDKError); ok {
-		r1 = rf(pm, token)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(errors.SDKError)
-		}
-	}
-
-	return r0, r1
-}
-
-// SDK_ListSubscriptions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListSubscriptions'
-type SDK_ListSubscriptions_Call struct {
-	*mock.Call
-}
-
-// ListSubscriptions is a helper method to define mock.On call
-//   - pm sdk.PageMetadata
-//   - token string
-func (_e *SDK_Expecter) ListSubscriptions(pm interface{}, token interface{}) *SDK_ListSubscriptions_Call {
-	return &SDK_ListSubscriptions_Call{Call: _e.mock.On("ListSubscriptions", pm, token)}
-}
-
-func (_c *SDK_ListSubscriptions_Call) Run(run func(pm sdk.PageMetadata, token string)) *SDK_ListSubscriptions_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(sdk.PageMetadata), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *SDK_ListSubscriptions_Call) Return(_a0 sdk.SubscriptionPage, _a1 errors.SDKError) *SDK_ListSubscriptions_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *SDK_ListSubscriptions_Call) RunAndReturn(run func(sdk.PageMetadata, string) (sdk.SubscriptionPage, errors.SDKError)) *SDK_ListSubscriptions_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListUserClients provides a mock function with given fields: userID, domainID, pm, token
 func (_m *SDK) ListUserClients(userID string, domainID string, pm sdk.PageMetadata, token string) (sdk.ClientsPage, errors.SDKError) {
 	ret := _m.Called(userID, domainID, pm, token)
@@ -4679,67 +4511,6 @@ func (_c *SDK_Members_Call) Return(_a0 sdk.UsersPage, _a1 errors.SDKError) *SDK_
 }
 
 func (_c *SDK_Members_Call) RunAndReturn(run func(string, string, sdk.PageMetadata, string) (sdk.UsersPage, errors.SDKError)) *SDK_Members_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ReadMessages provides a mock function with given fields: pm, chanID, domainID, token
-func (_m *SDK) ReadMessages(pm sdk.MessagePageMetadata, chanID string, domainID string, token string) (sdk.MessagesPage, errors.SDKError) {
-	ret := _m.Called(pm, chanID, domainID, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ReadMessages")
-	}
-
-	var r0 sdk.MessagesPage
-	var r1 errors.SDKError
-	if rf, ok := ret.Get(0).(func(sdk.MessagePageMetadata, string, string, string) (sdk.MessagesPage, errors.SDKError)); ok {
-		return rf(pm, chanID, domainID, token)
-	}
-	if rf, ok := ret.Get(0).(func(sdk.MessagePageMetadata, string, string, string) sdk.MessagesPage); ok {
-		r0 = rf(pm, chanID, domainID, token)
-	} else {
-		r0 = ret.Get(0).(sdk.MessagesPage)
-	}
-
-	if rf, ok := ret.Get(1).(func(sdk.MessagePageMetadata, string, string, string) errors.SDKError); ok {
-		r1 = rf(pm, chanID, domainID, token)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(errors.SDKError)
-		}
-	}
-
-	return r0, r1
-}
-
-// SDK_ReadMessages_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReadMessages'
-type SDK_ReadMessages_Call struct {
-	*mock.Call
-}
-
-// ReadMessages is a helper method to define mock.On call
-//   - pm sdk.MessagePageMetadata
-//   - chanID string
-//   - domainID string
-//   - token string
-func (_e *SDK_Expecter) ReadMessages(pm interface{}, chanID interface{}, domainID interface{}, token interface{}) *SDK_ReadMessages_Call {
-	return &SDK_ReadMessages_Call{Call: _e.mock.On("ReadMessages", pm, chanID, domainID, token)}
-}
-
-func (_c *SDK_ReadMessages_Call) Run(run func(pm sdk.MessagePageMetadata, chanID string, domainID string, token string)) *SDK_ReadMessages_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(sdk.MessagePageMetadata), args[1].(string), args[2].(string), args[3].(string))
-	})
-	return _c
-}
-
-func (_c *SDK_ReadMessages_Call) Return(_a0 sdk.MessagesPage, _a1 errors.SDKError) *SDK_ReadMessages_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *SDK_ReadMessages_Call) RunAndReturn(run func(sdk.MessagePageMetadata, string, string, string) (sdk.MessagesPage, errors.SDKError)) *SDK_ReadMessages_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -7543,65 +7314,6 @@ func (_c *SDK_ViewCertByClient_Call) Return(_a0 sdk.CertSerials, _a1 errors.SDKE
 }
 
 func (_c *SDK_ViewCertByClient_Call) RunAndReturn(run func(string, string, string) (sdk.CertSerials, errors.SDKError)) *SDK_ViewCertByClient_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// ViewSubscription provides a mock function with given fields: id, token
-func (_m *SDK) ViewSubscription(id string, token string) (sdk.Subscription, errors.SDKError) {
-	ret := _m.Called(id, token)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ViewSubscription")
-	}
-
-	var r0 sdk.Subscription
-	var r1 errors.SDKError
-	if rf, ok := ret.Get(0).(func(string, string) (sdk.Subscription, errors.SDKError)); ok {
-		return rf(id, token)
-	}
-	if rf, ok := ret.Get(0).(func(string, string) sdk.Subscription); ok {
-		r0 = rf(id, token)
-	} else {
-		r0 = ret.Get(0).(sdk.Subscription)
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string) errors.SDKError); ok {
-		r1 = rf(id, token)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(errors.SDKError)
-		}
-	}
-
-	return r0, r1
-}
-
-// SDK_ViewSubscription_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ViewSubscription'
-type SDK_ViewSubscription_Call struct {
-	*mock.Call
-}
-
-// ViewSubscription is a helper method to define mock.On call
-//   - id string
-//   - token string
-func (_e *SDK_Expecter) ViewSubscription(id interface{}, token interface{}) *SDK_ViewSubscription_Call {
-	return &SDK_ViewSubscription_Call{Call: _e.mock.On("ViewSubscription", id, token)}
-}
-
-func (_c *SDK_ViewSubscription_Call) Run(run func(id string, token string)) *SDK_ViewSubscription_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *SDK_ViewSubscription_Call) Return(_a0 sdk.Subscription, _a1 errors.SDKError) *SDK_ViewSubscription_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *SDK_ViewSubscription_Call) RunAndReturn(run func(string, string) (sdk.Subscription, errors.SDKError)) *SDK_ViewSubscription_Call {
 	_c.Call.Return(run)
 	return _c
 }

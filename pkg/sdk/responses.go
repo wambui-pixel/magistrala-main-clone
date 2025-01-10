@@ -72,11 +72,6 @@ type CertSerials struct {
 	PageRes
 }
 
-type SubscriptionPage struct {
-	Subscriptions []Subscription `json:"subscriptions"`
-	PageRes
-}
-
 type DomainsPage struct {
 	Domains []Domain `json:"domains"`
 	PageRes

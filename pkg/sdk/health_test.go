@@ -5,17 +5,11 @@ package sdk_test
 
 import (
 	"fmt"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/absmach/supermq"
-	chmocks "github.com/absmach/supermq/channels/mocks"
-	climocks "github.com/absmach/supermq/clients/mocks"
-	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
 	"github.com/absmach/supermq/pkg/errors"
 	sdk "github.com/absmach/supermq/pkg/sdk"
-	readersapi "github.com/absmach/supermq/readers/api"
-	readersmocks "github.com/absmach/supermq/readers/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,9 +23,6 @@ func TestHealth(t *testing.T) {
 	certsTs, _, _ := setupCerts()
 	defer certsTs.Close()
 
-	readerTs := setupMinimalReader()
-	defer readerTs.Close()
-
 	httpAdapterTs, _ := setupMessages()
 	defer httpAdapterTs.Close()
 
@@ -39,7 +30,6 @@ func TestHealth(t *testing.T) {
 		ClientsURL:      clientsTs.URL,
 		UsersURL:        usersTs.URL,
 		CertsURL:        certsTs.URL,
-		ReaderURL:       readerTs.URL,
 		HTTPAdapterURL:  httpAdapterTs.URL,
 		MsgContentType:  contentType,
 		TLSVerification: false,
@@ -79,14 +69,6 @@ func TestHealth(t *testing.T) {
 			status:      "pass",
 		},
 		{
-			desc:        "get reader service health check",
-			service:     "reader",
-			empty:       false,
-			err:         nil,
-			description: "test service",
-			status:      "pass",
-		},
-		{
 			desc:        "get http-adapter service health check",
 			service:     "http-adapter",
 			empty:       false,
@@ -106,14 +88,4 @@ func TestHealth(t *testing.T) {
 			assert.Equal(t, supermq.BuildTime, h.BuildTime, fmt.Sprintf("%s: expected default epoch date, got %s", tc.desc, h.BuildTime))
 		})
 	}
-}
-
-func setupMinimalReader() *httptest.Server {
-	repo := new(readersmocks.MessageRepository)
-	channels := new(chmocks.ChannelsServiceClient)
-	authn := new(authnmocks.Authentication)
-	clients := new(climocks.ClientsServiceClient)
-
-	mux := readersapi.MakeHandler(repo, authn, clients, channels, "test", "")
-	return httptest.NewServer(mux)
 }

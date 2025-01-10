@@ -1044,17 +1044,6 @@ type SDK interface {
 	//  fmt.Println(err)
 	SendMessage(chanID, msg, key string) errors.SDKError
 
-	// ReadMessages read messages of specified channel.
-	//
-	// example:
-	//  pm := sdk.MessagePageMetadata{
-	//    Offset: 0,
-	//    Limit:  10,
-	//  }
-	//  msgs, _ := sdk.ReadMessages(pm,"channelID", "domainID", "token")
-	//  fmt.Println(msgs)
-	ReadMessages(pm MessagePageMetadata, chanID, domainID, token string) (MessagesPage, errors.SDKError)
-
 	// SetContentType sets message content type.
 	//
 	// example:
@@ -1096,38 +1085,6 @@ type SDK interface {
 	//  tm, _ := sdk.RevokeCert("clientID", "domainID", "token")
 	//  fmt.Println(tm)
 	RevokeCert(clientID, domainID, token string) (time.Time, errors.SDKError)
-
-	// CreateSubscription creates a new subscription
-	//
-	// example:
-	//  subscription, _ := sdk.CreateSubscription("topic", "contact", "token")
-	//  fmt.Println(subscription)
-	CreateSubscription(topic, contact, token string) (string, errors.SDKError)
-
-	// ListSubscriptions list subscriptions given list parameters.
-	//
-	// example:
-	//  pm := sdk.PageMetadata{
-	//    Offset: 0,
-	//    Limit:  10,
-	//  }
-	//  subscriptions, _ := sdk.ListSubscriptions(pm, "token")
-	//  fmt.Println(subscriptions)
-	ListSubscriptions(pm PageMetadata, token string) (SubscriptionPage, errors.SDKError)
-
-	// ViewSubscription retrieves a subscription with the provided id.
-	//
-	// example:
-	//  subscription, _ := sdk.ViewSubscription("id", "token")
-	//  fmt.Println(subscription)
-	ViewSubscription(id, token string) (Subscription, errors.SDKError)
-
-	// DeleteSubscription removes a subscription with the provided id.
-	//
-	// example:
-	//  err := sdk.DeleteSubscription("id", "token")
-	//  fmt.Println(err)
-	DeleteSubscription(id, token string) errors.SDKError
 
 	// CreateDomain creates new domain and returns its details.
 	//
@@ -1370,7 +1327,6 @@ type SDK interface {
 type mgSDK struct {
 	certsURL       string
 	httpAdapterURL string
-	readerURL      string
 	clientsURL     string
 	usersURL       string
 	groupsURL      string
@@ -1389,7 +1345,6 @@ type mgSDK struct {
 type Config struct {
 	CertsURL       string
 	HTTPAdapterURL string
-	ReaderURL      string
 	ClientsURL     string
 	UsersURL       string
 	GroupsURL      string
@@ -1409,7 +1364,6 @@ func NewSDK(conf Config) SDK {
 	return &mgSDK{
 		certsURL:       conf.CertsURL,
 		httpAdapterURL: conf.HTTPAdapterURL,
-		readerURL:      conf.ReaderURL,
 		clientsURL:     conf.ClientsURL,
 		usersURL:       conf.UsersURL,
 		groupsURL:      conf.GroupsURL,

@@ -3,10 +3,7 @@
 
 package cli
 
-import (
-	smqsdk "github.com/absmach/supermq/pkg/sdk"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 var cmdMessages = []cobra.Command{
 	{
@@ -27,41 +24,14 @@ var cmdMessages = []cobra.Command{
 			logOKCmd(*cmd)
 		},
 	},
-	{
-		Use:   "read <channel_id.subtopic> <domain_id> <user_token>",
-		Short: "Read messages",
-		Long: "Reads all channel messages\n" +
-			"Usage:\n" +
-			"\tsupermq-cli messages read <channel_id.subtopic> <domain_id> <user_token> --offset <offset> --limit <limit> - lists all messages with provided offset and limit\n",
-		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) != 3 {
-				logUsageCmd(*cmd, cmd.Use)
-				return
-			}
-			pageMetadata := smqsdk.MessagePageMetadata{
-				PageMetadata: smqsdk.PageMetadata{
-					Offset: Offset,
-					Limit:  Limit,
-				},
-			}
-
-			m, err := sdk.ReadMessages(pageMetadata, args[0], args[1], args[2])
-			if err != nil {
-				logErrorCmd(*cmd, err)
-				return
-			}
-
-			logJSONCmd(*cmd, m)
-		},
-	},
 }
 
 // NewMessagesCmd returns messages command.
 func NewMessagesCmd() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "messages [send | read]",
-		Short: "Send or read messages",
-		Long:  `Send or read messages using the http-adapter and the configured database reader`,
+		Short: "Send messages",
+		Long:  `Send messages using the http-adapter`,
 	}
 
 	for i := range cmdMessages {

@@ -62,10 +62,6 @@ jobs:
               - "users/emailer.go"
               - "users/hasher.go"
               - "mqtt/events/streams.go"
-              - "readers/messages.go"
-              - "consumers/notifiers/notifier.go"
-              - "consumers/notifiers/service.go"
-              - "consumers/notifiers/subscriptions.go"
               - "certs/certs.go"
               - "certs/pki/vault.go"
               - "certs/service.go"
@@ -145,9 +141,6 @@ jobs:
           mv ./users/mocks/service.go ./users/mocks/service.go.tmp
           mv ./journal/mocks/repository.go ./journal/mocks/repository.go.tmp
           mv ./journal/mocks/service.go ./journal/mocks/service.go.tmp
-          mv ./consumers/notifiers/mocks/notifier.go ./consumers/notifiers/mocks/notifier.go.tmp
-          mv ./consumers/notifiers/mocks/repository.go ./consumers/notifiers/mocks/repository.go.tmp
-          mv ./consumers/notifiers/mocks/service.go ./consumers/notifiers/mocks/service.go.tmp
           mv ./certs/mocks/pki.go ./certs/mocks/pki.go.tmp
           mv ./certs/mocks/service.go ./certs/mocks/service.go.tmp
           mv ./clients/private/mocks/service.go ./clients/private/mocks/service.go.tmp
@@ -206,9 +199,6 @@ jobs:
           check_mock_changes ./users/mocks/service.go " ./users/mocks/service.go"
           check_mock_changes ./journal/mocks/repository.go " ./journal/mocks/repository.go"
           check_mock_changes ./journal/mocks/service.go " ./journal/mocks/service.go"
-          check_mock_changes ./consumers/notifiers/mocks/notifier.go " ./consumers/notifiers/mocks/notifier.go"
-          check_mock_changes ./consumers/notifiers/mocks/repository.go " ./consumers/notifiers/mocks/repository.go"
-          check_mock_changes ./consumers/notifiers/mocks/service.go " ./consumers/notifiers/mocks/service.go"
           check_mock_changes ./certs/mocks/pki.go " ./certs/mocks/pki.go"
           check_mock_changes ./certs/mocks/service.go " ./certs/mocks/service.go"
           check_mock_changes ./clients/private/mocks/service.go " ./clients/private/mocks/service.go"

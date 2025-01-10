@@ -42,7 +42,6 @@ func main() {
 	channelsCmd := cli.NewChannelsCmd()
 	messagesCmd := cli.NewMessagesCmd()
 	certsCmd := cli.NewCertsCmd()
-	subscriptionsCmd := cli.NewSubscriptionCmd()
 	configCmd := cli.NewConfigCmd()
 	invitationsCmd := cli.NewInvitationsCmd()
 	journalCmd := cli.NewJournalCmd()
@@ -56,7 +55,6 @@ func main() {
 	rootCmd.AddCommand(channelsCmd)
 	rootCmd.AddCommand(messagesCmd)
 	rootCmd.AddCommand(certsCmd)
-	rootCmd.AddCommand(subscriptionsCmd)
 	rootCmd.AddCommand(configCmd)
 	rootCmd.AddCommand(invitationsCmd)
 	rootCmd.AddCommand(journalCmd)
@@ -100,14 +98,6 @@ func main() {
 		"p",
 		sdkConf.HTTPAdapterURL,
 		"HTTP adapter URL",
-	)
-
-	rootCmd.PersistentFlags().StringVarP(
-		&sdkConf.ReaderURL,
-		"reader-url",
-		"R",
-		sdkConf.ReaderURL,
-		"Reader URL",
 	)
 
 	rootCmd.PersistentFlags().StringVarP(
