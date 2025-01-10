@@ -29,7 +29,7 @@ jobs:
 
       - name: Lint Protobuf Files
         run: |
-          protolint . 
+          protolint .
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -83,15 +83,6 @@ jobs:
               - "auth_grpc.pb.go"
               - "pkg/ulid/**"
               - "pkg/uuid/**"
- 
-            bootstrap:
-              - "bootstrap/**"
-              - "cmd/bootstrap/**"
-              - "auth.pb.go"
-              - "auth_grpc.pb.go"
-              - "auth/**"
-              - "pkg/sdk/**"
-              - "pkg/events/**"
 
             certs:
               - "certs/**"
@@ -100,7 +91,7 @@ jobs:
               - "auth_grpc.pb.go"
               - "auth/**"
               - "pkg/sdk/**"
-            
+
             channels:
               - "channels/**"
               - "cmd/channels/**"
@@ -152,7 +143,7 @@ jobs:
               - "pkg/ulid/**"
               - "pkg/uuid/**"
               - "pkg/messaging/**"
-            
+
             domains:
               - "domain/**"
               - "cmd/domain/**"
@@ -193,7 +184,7 @@ jobs:
               - "auth_grpc.pb.go"
               - "auth/**"
               - "pkg/sdk/**"
-            
+
             journal:
               - "journal/**"
               - "cmd/journal/**"
@@ -201,7 +192,7 @@ jobs:
               - "auth_grpc.pb.go"
               - "auth/**"
               - "pkg/events/**"
-            
+
             logger:
               - "logger/**"
 
@@ -233,7 +224,6 @@ jobs:
               - "pkg/errors/**"
               - "pkg/groups/**"
               - "auth/**"
-              - "bootstrap/**"
               - "certs/**"
               - "consumers/**"
               - "http/**"
@@ -242,7 +232,6 @@ jobs:
               - "internal/apiutil/**"
               - "internal/groups/**"
               - "invitations/**"
-              - "provision/**"
               - "readers/**"
               - "clients/**"
               - "users/**"
@@ -255,12 +244,6 @@ jobs:
 
             pkg-uuid:
               - "pkg/uuid/**"
-
-            provision:
-              - "provision/**"
-              - "cmd/provision/**"
-              - "logger/**"
-              - "pkg/sdk/**"
 
             readers:
               - "readers/**"
@@ -302,16 +285,11 @@ jobs:
         if: steps.changes.outputs.auth == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/auth.out ./auth/...
-      
+
       - name: Run domains tests
         if: steps.changes.outputs.domains == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/domains.out ./domains/...
-
-      - name: Run bootstrap tests
-        if: steps.changes.outputs.bootstrap == 'true' || steps.changes.outputs.workflow == 'true'
-        run: |
-          go test --race -v -count=1 -coverprofile=coverage/bootstrap.out ./bootstrap/...
 
       - name: Run certs tests
         if: steps.changes.outputs.certs == 'true' || steps.changes.outputs.workflow == 'true'
@@ -398,11 +376,6 @@ jobs:
         run: |
           go test --race -v -count=1 -coverprofile=coverage/pkg-uuid.out ./pkg/uuid/...
 
-      - name: Run provision tests
-        if: steps.changes.outputs.provision == 'true' || steps.changes.outputs.workflow == 'true'
-        run: |
-          go test --race -v -count=1 -coverprofile=coverage/provision.out ./provision/...
-
       - name: Run readers tests
         if: steps.changes.outputs.readers == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
@@ -412,7 +385,7 @@ jobs:
         if: steps.changes.outputs.clients == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/clients.out ./clients/...
-      
+
       - name: Run channels tests
         if: steps.changes.outputs.channels == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
@@ -422,7 +395,7 @@ jobs:
         if: steps.changes.outputs.users == 'true' || steps.changes.outputs.workflow == 'true'
         run: |
           go test --race -v -count=1 -coverprofile=coverage/users.out ./users/...
-      
+
       - name: Run groups tests
         if: steps.changes.outputs.groups == 'true' || steps.changes.outputs.workflow == 'true'
         run: |

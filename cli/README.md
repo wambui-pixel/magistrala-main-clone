@@ -84,50 +84,6 @@ supermq-cli clients create '{"name":"myClient"}' <user_token>
 supermq-cli clients create '{"name":"myClient", "metadata": {"key1":"value1"}}' <user_token>
 ```
 
-#### Bulk Provision Clients
-
-```bash
-supermq-cli provision clients <file> <user_token>
-```
-
-- `file` - A CSV or JSON file containing client names (must have extension `.csv` or `.json`)
-- `user_token` - A valid user auth token for the current system
-
-An example CSV file might be:
-
-```csv
-client1,
-client2,
-client3,
-```
-
-in which the first column is the client's name.
-
-A comparable JSON file would be
-
-```json
-[
-  {
-    "name": "<client1_name>",
-    "status": "enabled"
-  },
-  {
-    "name": "<client2_name>",
-    "status": "disabled"
-  },
-  {
-    "name": "<client3_name>",
-    "status": "enabled",
-    "credentials": {
-      "identity": "<client3_identity>",
-      "secret": "<client3_secret>"
-    }
-  }
-]
-```
-
-With JSON you can be able to specify more fields of the channels you want to create
-
 #### Update Client
 
 ```bash
@@ -320,38 +276,6 @@ supermq-cli messages send <channel_id> '[{"bn":"Dev1","n":"temp","v":20}, {"n":"
 
 ```bash
 supermq-cli messages read <channel_id> <user_token> -R <reader_url>
-```
-
-### Bootstrap
-
-#### Add configuration
-
-```bash
-supermq-cli bootstrap create '{"external_id": "myExtID", "external_key": "myExtKey", "name": "myName", "content": "myContent"}' <user_token> -b <bootstrap-url>
-```
-
-#### View configuration
-
-```bash
-supermq-cli bootstrap get <client_id> <user_token> -b <bootstrap-url>
-```
-
-#### Update configuration
-
-```bash
-supermq-cli bootstrap update '{"client_id":"<client_id>", "name": "newName", "content": "newContent"}' <user_token> -b <bootstrap-url>
-```
-
-#### Remove configuration
-
-```bash
-supermq-cli bootstrap remove <client_id> <user_token> -b <bootstrap-url>
-```
-
-#### Bootstrap configuration
-
-```bash
-supermq-cli bootstrap bootstrap <external_id> <external_key> -b <bootstrap-url>
 ```
 
 ### Groups

@@ -57,10 +57,7 @@ jobs:
               - "auth/keys.go"
               - "auth/service.go"
               - "pkg/events/events.go"
-              - "provision/service.go"
               - "pkg/groups/groups.go"
-              - "bootstrap/service.go"
-              - "bootstrap/configs.go"
               - "invitations/invitations.go"
               - "users/emailer.go"
               - "users/hasher.go"
@@ -132,9 +129,6 @@ jobs:
           mv ./auth/mocks/authz.go ./auth/mocks/authz.go.tmp
           mv ./auth/mocks/keys.go ./auth/mocks/keys.go.tmp
           mv ./auth/mocks/service.go ./auth/mocks/service.go.tmp
-          mv ./bootstrap/mocks/configs.go ./bootstrap/mocks/configs.go.tmp
-          mv ./bootstrap/mocks/config_reader.go ./bootstrap/mocks/config_reader.go.tmp
-          mv ./bootstrap/mocks/service.go ./bootstrap/mocks/service.go.tmp
           mv ./domains/mocks/domains_client.go ./domains/mocks/domains_client.go.tmp
           mv ./domains/mocks/repository.go ./domains/mocks/repository.go.tmp
           mv ./domains/mocks/service.go ./domains/mocks/service.go.tmp
@@ -156,7 +150,6 @@ jobs:
           mv ./consumers/notifiers/mocks/service.go ./consumers/notifiers/mocks/service.go.tmp
           mv ./certs/mocks/pki.go ./certs/mocks/pki.go.tmp
           mv ./certs/mocks/service.go ./certs/mocks/service.go.tmp
-          mv ./provision/mocks/service.go ./provision/mocks/service.go.tmp
           mv ./clients/private/mocks/service.go ./clients/private/mocks/service.go.tmp
           mv ./clients/mocks/repository.go ./clients/mocks/repository.go.tmp
           mv ./clients/mocks/clients_client.go ./clients/mocks/clients_client.go.tmp
@@ -197,9 +190,6 @@ jobs:
           check_mock_changes ./auth/mocks/authz.go " ./auth/mocks/authz.go"
           check_mock_changes ./auth/mocks/keys.go " ./auth/mocks/keys.go"
           check_mock_changes ./auth/mocks/service.go " ./auth/mocks/service.go"
-          check_mock_changes ./bootstrap/mocks/configs.go " ./bootstrap/mocks/configs.go"
-          check_mock_changes ./bootstrap/mocks/config_reader.go " ./bootstrap/mocks/config_reader.go"
-          check_mock_changes ./bootstrap/mocks/service.go " ./bootstrap/mocks/service.go"
           check_mock_changes ./domains/mocks/domains_client.go " ./domains/mocks/domains_client.go"
           check_mock_changes ./domains/mocks/repository.go " ./domains/mocks/repository.go"
           check_mock_changes ./domains/mocks/service.go " ./domains/mocks/service.go"
@@ -221,7 +211,6 @@ jobs:
           check_mock_changes ./consumers/notifiers/mocks/service.go " ./consumers/notifiers/mocks/service.go"
           check_mock_changes ./certs/mocks/pki.go " ./certs/mocks/pki.go"
           check_mock_changes ./certs/mocks/service.go " ./certs/mocks/service.go"
-          check_mock_changes ./provision/mocks/service.go " ./provision/mocks/service.go"
           check_mock_changes ./clients/private/mocks/service.go " ./clients/private/mocks/service.go"
           check_mock_changes ./clients/mocks/repository.go " ./clients/mocks/repository.go"
           check_mock_changes ./clients/mocks/clients_client.go " ./clients/mocks/clients_client.go"

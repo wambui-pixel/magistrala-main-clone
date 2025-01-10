@@ -11,7 +11,6 @@ on:
       - ".github/workflows/api-tests.yml"
       - "api/**"
       - "auth/api/http/**"
-      - "bootstrap/api**"
       - "certs/api/**"
       - "channels/api/http/**"
       - "clients/api/http/**"
@@ -21,7 +20,6 @@ on:
       - "http/api/**"
       - "invitations/api/**"
       - "journal/api/**"
-      - "provision/api/**"
       - "readers/api/**"
       - "users/api/**"
 
@@ -39,9 +37,7 @@ env:
   HTTP_ADAPTER_URL: http://localhost:8008
   INVITATIONS_URL: http://localhost:9020
   AUTH_URL: http://localhost:9001
-  BOOTSTRAP_URL: http://localhost:9013
   CERTS_URL: http://localhost:9019
-  PROVISION_URL: http://localhost:9016
   POSTGRES_READER_URL: http://localhost:9009
   TIMESCALE_READER_URL: http://localhost:9011
   JOURNAL_URL: http://localhost:9021
@@ -88,16 +84,11 @@ jobs:
               - "apidocs/openapi/auth.yml"
               - "auth/api/http/**"
 
-            bootstrap:
-              - ".github/workflows/api-tests.yml"
-              - "apidocs/openapi/bootstrap.yml"
-              - "bootstrap/api/**"
-
             certs:
               - ".github/workflows/api-tests.yml"
               - "apidocs/openapi/certs.yml"
               - "certs/api/**"
-            
+
             domains:
               - ".github/workflows/api-tests.yml"
               - "apidocs/openapi/domains.yml"
@@ -113,11 +104,6 @@ jobs:
               - "apidocs/openapi/invitations.yml"
               - "invitations/api/**"
 
-            provision:
-              - ".github/workflows/api-tests.yml"
-              - "apidocs/openapi/provision.yml"
-              - "provision/api/**"
-
             readers:
               - ".github/workflows/api-tests.yml"
               - "apidocs/openapi/readers.yml"
@@ -127,12 +113,12 @@ jobs:
               - ".github/workflows/api-tests.yml"
               - "apidocs/openapi/clients.yml"
               - "clients/api/http/**"
-            
+
             channels:
               - ".github/workflows/api-tests.yml"
               - "apidocs/openapi/channels.yml"
               - "channels/api/http/**"
-            
+
             groups:
               - ".github/workflows/api-tests.yml"
               - "apidocs/openapi/groups.yml"
@@ -152,7 +138,7 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-      
+
       - name: Run Groups API tests
         if: steps.changes.outputs.groups == 'true'
         uses: schemathesis/action@v1
@@ -162,7 +148,7 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-          
+
       - name: Run Clients API tests
         if: steps.changes.outputs.clients == 'true'
         uses: schemathesis/action@v1
@@ -172,7 +158,7 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-      
+
       - name: Run Channels API tests
         if: steps.changes.outputs.channels == 'true'
         uses: schemathesis/action@v1
@@ -212,7 +198,7 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-      
+
       - name: Run Domains API tests
         if: steps.changes.outputs.domains == 'true'
         uses: schemathesis/action@v1
@@ -222,7 +208,7 @@ jobs:
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-          
+
       - name: Run Journal API tests
         if: steps.changes.outputs.journal == 'true'
         uses: schemathesis/action@v1
@@ -233,58 +219,12 @@ jobs:
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
 
-      - name: Run Bootstrap API tests
-        if: steps.changes.outputs.bootstrap == 'true'
-        uses: schemathesis/action@v1
-        with:
-          schema: apidocs/openapi/bootstrap.yml
-          base-url: ${{ env.BOOTSTRAP_URL }}
-          checks: all
-          report: false
-          args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-
       - name: Run Certs API tests
         if: steps.changes.outputs.certs == 'true'
         uses: schemathesis/action@v1
         with:
           schema: apidocs/openapi/certs.yml
           base-url: ${{ env.CERTS_URL }}
-          checks: all
-          report: false
-          args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-
-      - name: Run Provision API tests
-        if: steps.changes.outputs.provision == 'true'
-        uses: schemathesis/action@v1
-        with:
-          schema: apidocs/openapi/provision.yml
-          base-url: ${{ env.PROVISION_URL }}
-          checks: all
-          report: false
-          args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-
-      - name: Seed Messages
-        if: steps.changes.outputs.readers == 'true'
-        run: |
-          make cli
-          ./build/cli provision test
-
-      - name: Run Postgres Reader API tests
-        if: steps.changes.outputs.readers == 'true'
-        uses: schemathesis/action@v1
-        with:
-          schema: apidocs/openapi/readers.yml
-          base-url: ${{ env.POSTGRES_READER_URL }}
-          checks: all
-          report: false
-          args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'
-
-      - name: Run Timescale Reader API tests
-        if: steps.changes.outputs.readers == 'true'
-        uses: schemathesis/action@v1
-        with:
-          schema: apidocs/openapi/readers.yml
-          base-url: ${{ env.TIMESCALE_READER_URL }}
           checks: all
           report: false
           args: '--header "Authorization: Bearer ${{ env.USER_TOKEN }}" --contrib-openapi-formats-uuid --hypothesis-suppress-health-check=filter_too_much --stateful=links'

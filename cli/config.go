@@ -22,7 +22,6 @@ const (
 	defUsersURL        string = defURL + ":9002"
 	defCLientsURL      string = defURL + ":9000"
 	defReaderURL       string = defURL + ":9011"
-	defBootstrapURL    string = defURL + ":9013"
 	defDomainsURL      string = defURL + ":8189"
 	defCertsURL        string = defURL + ":9019"
 	defInvitationsURL  string = defURL + ":9020"
@@ -41,7 +40,6 @@ type remotes struct {
 	ReaderURL       string `toml:"reader_url"`
 	DomainsURL      string `toml:"domains_url"`
 	HTTPAdapterURL  string `toml:"http_adapter_url"`
-	BootstrapURL    string `toml:"bootstrap_url"`
 	CertsURL        string `toml:"certs_url"`
 	InvitationsURL  string `toml:"invitations_url"`
 	JournalURL      string `toml:"journal_url"`
@@ -112,7 +110,6 @@ func ParseConfig(sdkConf smqsdk.Config) (smqsdk.Config, error) {
 				ReaderURL:       defReaderURL,
 				DomainsURL:      defDomainsURL,
 				HTTPAdapterURL:  defHTTPURL,
-				BootstrapURL:    defBootstrapURL,
 				CertsURL:        defCertsURL,
 				InvitationsURL:  defInvitationsURL,
 				JournalURL:      defJournalURL,
@@ -191,10 +188,6 @@ func ParseConfig(sdkConf smqsdk.Config) (smqsdk.Config, error) {
 		sdkConf.HTTPAdapterURL = config.Remotes.HTTPAdapterURL
 	}
 
-	if sdkConf.BootstrapURL == "" && config.Remotes.BootstrapURL != "" {
-		sdkConf.BootstrapURL = config.Remotes.BootstrapURL
-	}
-
 	if sdkConf.CertsURL == "" && config.Remotes.CertsURL != "" {
 		sdkConf.CertsURL = config.Remotes.CertsURL
 	}
@@ -262,7 +255,6 @@ func setConfigValue(key, value string) error {
 		"users_url":        &config.Remotes.UsersURL,
 		"reader_url":       &config.Remotes.ReaderURL,
 		"http_adapter_url": &config.Remotes.HTTPAdapterURL,
-		"bootstrap_url":    &config.Remotes.BootstrapURL,
 		"certs_url":        &config.Remotes.CertsURL,
 		"tls_verification": &config.Remotes.TLSVerification,
 		"offset":           &config.Filter.Offset,

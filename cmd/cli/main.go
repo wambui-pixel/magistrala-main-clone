@@ -41,8 +41,6 @@ func main() {
 	groupsCmd := cli.NewGroupsCmd()
 	channelsCmd := cli.NewChannelsCmd()
 	messagesCmd := cli.NewMessagesCmd()
-	provisionCmd := cli.NewProvisionCmd()
-	bootstrapCmd := cli.NewBootstrapCmd()
 	certsCmd := cli.NewCertsCmd()
 	subscriptionsCmd := cli.NewSubscriptionCmd()
 	configCmd := cli.NewConfigCmd()
@@ -57,8 +55,6 @@ func main() {
 	rootCmd.AddCommand(clientsCmd)
 	rootCmd.AddCommand(channelsCmd)
 	rootCmd.AddCommand(messagesCmd)
-	rootCmd.AddCommand(provisionCmd)
-	rootCmd.AddCommand(bootstrapCmd)
 	rootCmd.AddCommand(certsCmd)
 	rootCmd.AddCommand(subscriptionsCmd)
 	rootCmd.AddCommand(configCmd)
@@ -66,14 +62,6 @@ func main() {
 	rootCmd.AddCommand(journalCmd)
 
 	// Root Flags
-	rootCmd.PersistentFlags().StringVarP(
-		&sdkConf.BootstrapURL,
-		"bootstrap-url",
-		"b",
-		sdkConf.BootstrapURL,
-		"Bootstrap service URL",
-	)
-
 	rootCmd.PersistentFlags().StringVarP(
 		&sdkConf.CertsURL,
 		"certs-url",
@@ -232,14 +220,6 @@ func main() {
 		"S",
 		"",
 		"User status query parameter",
-	)
-
-	rootCmd.PersistentFlags().StringVarP(
-		&cli.State,
-		"state",
-		"z",
-		"",
-		"Bootstrap state query parameter",
 	)
 
 	rootCmd.PersistentFlags().StringVarP(

@@ -67,12 +67,6 @@ type revokeCertsRes struct {
 	RevocationTime time.Time `json:"revocation_time"`
 }
 
-// bootstrapsPage contains list of bootstrap configs in a page with proper metadata.
-type BootstrapPage struct {
-	Configs []BootstrapConfig `json:"configs"`
-	PageRes
-}
-
 type CertSerials struct {
 	Certs []Cert `json:"certs"`
 	PageRes

@@ -10,7 +10,6 @@ import (
 
 	"github.com/absmach/supermq"
 	apiutil "github.com/absmach/supermq/api/http/util"
-	"github.com/absmach/supermq/bootstrap"
 	"github.com/absmach/supermq/certs"
 	"github.com/absmach/supermq/clients"
 	"github.com/absmach/supermq/groups"
@@ -127,9 +126,7 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 	switch {
 	case errors.Contains(err, svcerr.ErrAuthorization),
 		errors.Contains(err, svcerr.ErrDomainAuthorization),
-		errors.Contains(err, svcerr.ErrUnauthorizedPAT),
-		errors.Contains(err, bootstrap.ErrExternalKey),
-		errors.Contains(err, bootstrap.ErrExternalKeySecure):
+		errors.Contains(err, svcerr.ErrUnauthorizedPAT):
 		err = unwrap(err)
 		w.WriteHeader(http.StatusForbidden)
 
@@ -169,11 +166,9 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, apiutil.ErrInvitationState),
 		errors.Contains(err, apiutil.ErrInvalidAPIKey),
 		errors.Contains(err, svcerr.ErrViewEntity),
-		errors.Contains(err, apiutil.ErrBootstrapState),
 		errors.Contains(err, apiutil.ErrMissingCertData),
 		errors.Contains(err, apiutil.ErrInvalidContact),
 		errors.Contains(err, apiutil.ErrInvalidTopic),
-		errors.Contains(err, bootstrap.ErrAddBootstrap),
 		errors.Contains(err, apiutil.ErrInvalidCertData),
 		errors.Contains(err, apiutil.ErrEmptyMessage),
 		errors.Contains(err, apiutil.ErrInvalidLevel),
@@ -214,8 +209,7 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		err = unwrap(err)
 		w.WriteHeader(http.StatusUnprocessableEntity)
 
-	case errors.Contains(err, svcerr.ErrNotFound),
-		errors.Contains(err, bootstrap.ErrBootstrap):
+	case errors.Contains(err, svcerr.ErrNotFound):
 		err = unwrap(err)
 		w.WriteHeader(http.StatusNotFound)
 

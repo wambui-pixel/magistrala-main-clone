@@ -156,9 +156,6 @@ var (
 	// ErrInvalidAPIKey indicates an invalid API key type.
 	ErrInvalidAPIKey = errors.New("invalid api key type")
 
-	// ErrBootstrapState indicates an invalid bootstrap state.
-	ErrBootstrapState = errors.New("invalid bootstrap state")
-
 	// ErrInvitationState indicates an invalid invitation state.
 	ErrInvitationState = errors.New("invalid invitation state")
 

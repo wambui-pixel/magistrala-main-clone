@@ -9,11 +9,8 @@ import (
 	"testing"
 
 	"github.com/absmach/supermq"
-	"github.com/absmach/supermq/bootstrap/api"
-	bmocks "github.com/absmach/supermq/bootstrap/mocks"
 	chmocks "github.com/absmach/supermq/channels/mocks"
 	climocks "github.com/absmach/supermq/clients/mocks"
-	smqlog "github.com/absmach/supermq/logger"
 	authnmocks "github.com/absmach/supermq/pkg/authn/mocks"
 	"github.com/absmach/supermq/pkg/errors"
 	sdk "github.com/absmach/supermq/pkg/sdk"
@@ -32,9 +29,6 @@ func TestHealth(t *testing.T) {
 	certsTs, _, _ := setupCerts()
 	defer certsTs.Close()
 
-	bootstrapTs := setupMinimalBootstrap()
-	defer bootstrapTs.Close()
-
 	readerTs := setupMinimalReader()
 	defer readerTs.Close()
 
@@ -45,7 +39,6 @@ func TestHealth(t *testing.T) {
 		ClientsURL:      clientsTs.URL,
 		UsersURL:        usersTs.URL,
 		CertsURL:        certsTs.URL,
-		BootstrapURL:    bootstrapTs.URL,
 		ReaderURL:       readerTs.URL,
 		HTTPAdapterURL:  httpAdapterTs.URL,
 		MsgContentType:  contentType,
@@ -86,14 +79,6 @@ func TestHealth(t *testing.T) {
 			status:      "pass",
 		},
 		{
-			desc:        "get bootstrap service health check",
-			service:     "bootstrap",
-			empty:       false,
-			err:         nil,
-			description: "bootstrap service",
-			status:      "pass",
-		},
-		{
 			desc:        "get reader service health check",
 			service:     "reader",
 			empty:       false,
@@ -121,16 +106,6 @@ func TestHealth(t *testing.T) {
 			assert.Equal(t, supermq.BuildTime, h.BuildTime, fmt.Sprintf("%s: expected default epoch date, got %s", tc.desc, h.BuildTime))
 		})
 	}
-}
-
-func setupMinimalBootstrap() *httptest.Server {
-	bsvc := new(bmocks.Service)
-	reader := new(bmocks.ConfigReader)
-	logger := smqlog.NewMock()
-	authn := new(authnmocks.Authentication)
-	mux := api.MakeHandler(bsvc, authn, reader, logger, "")
-
-	return httptest.NewServer(mux)
 }
 
 func setupMinimalReader() *httptest.Server {

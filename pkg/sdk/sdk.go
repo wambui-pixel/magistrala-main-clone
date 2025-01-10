@@ -1069,94 +1069,6 @@ type SDK interface {
 	//  fmt.Println(health)
 	Health(service string) (HealthInfo, errors.SDKError)
 
-	// AddBootstrap add bootstrap configuration
-	//
-	// example:
-	//  cfg := sdk.BootstrapConfig{
-	//    ClientID: "clientID",
-	//    Name: "bootstrap",
-	//    ExternalID: "externalID",
-	//    ExternalKey: "externalKey",
-	//    Channels: []string{"channel1", "channel2"},
-	//  }
-	//  id, _ := sdk.AddBootstrap(cfg, "domainID", "token")
-	//  fmt.Println(id)
-	AddBootstrap(cfg BootstrapConfig, domainID, token string) (string, errors.SDKError)
-
-	// View returns Client Config with given ID belonging to the user identified by the given token.
-	//
-	// example:
-	//  bootstrap, _ := sdk.ViewBootstrap("id", "domainID", "token")
-	//  fmt.Println(bootstrap)
-	ViewBootstrap(id, domainID, token string) (BootstrapConfig, errors.SDKError)
-
-	// Update updates editable fields of the provided Config.
-	//
-	// example:
-	//  cfg := sdk.BootstrapConfig{
-	//    ClientID: "clientID",
-	//    Name: "bootstrap",
-	//    ExternalID: "externalID",
-	//    ExternalKey: "externalKey",
-	//    Channels: []string{"channel1", "channel2"},
-	//  }
-	//  err := sdk.UpdateBootstrap(cfg, "domainID", "token")
-	//  fmt.Println(err)
-	UpdateBootstrap(cfg BootstrapConfig, domainID, token string) errors.SDKError
-
-	// Update bootstrap config certificates.
-	//
-	// example:
-	//  err := sdk.UpdateBootstrapCerts("id", "clientCert", "clientKey", "ca", "domainID", "token")
-	//  fmt.Println(err)
-	UpdateBootstrapCerts(id string, clientCert, clientKey, ca string, domainID, token string) (BootstrapConfig, errors.SDKError)
-
-	// UpdateBootstrapConnection updates connections performs update of the channel list corresponding Client is connected to.
-	//
-	// example:
-	//  err := sdk.UpdateBootstrapConnection("id", []string{"channel1", "channel2"}, "domainID", "token")
-	//  fmt.Println(err)
-	UpdateBootstrapConnection(id string, channels []string, domainID, token string) errors.SDKError
-
-	// Remove removes Config with specified token that belongs to the user identified by the given token.
-	//
-	// example:
-	//  err := sdk.RemoveBootstrap("id", "domainID", "token")
-	//  fmt.Println(err)
-	RemoveBootstrap(id, domainID, token string) errors.SDKError
-
-	// Bootstrap returns Config to the Client with provided external ID using external key.
-	//
-	// example:
-	//  bootstrap, _ := sdk.Bootstrap("externalID", "externalKey")
-	//  fmt.Println(bootstrap)
-	Bootstrap(externalID, externalKey string) (BootstrapConfig, errors.SDKError)
-
-	// BootstrapSecure retrieves a configuration with given external ID and encrypted external key.
-	//
-	// example:
-	//  bootstrap, _ := sdk.BootstrapSecure("externalID", "externalKey", "cryptoKey")
-	//  fmt.Println(bootstrap)
-	BootstrapSecure(externalID, externalKey, cryptoKey string) (BootstrapConfig, errors.SDKError)
-
-	// Bootstraps retrieves a list of managed configs.
-	//
-	// example:
-	//  pm := sdk.PageMetadata{
-	//    Offset: 0,
-	//    Limit:  10,
-	//  }
-	//  bootstraps, _ := sdk.Bootstraps(pm, "domainID", "token")
-	//  fmt.Println(bootstraps)
-	Bootstraps(pm PageMetadata, domainID, token string) (BootstrapPage, errors.SDKError)
-
-	// Whitelist updates Client state Config with given ID belonging to the user identified by the given token.
-	//
-	// example:
-	//  err := sdk.Whitelist("clientID", 1, "domainID", "token")
-	//  fmt.Println(err)
-	Whitelist(clientID string, state int, domainID, token string) errors.SDKError
-
 	// IssueCert issues a certificate for a client required for mTLS.
 	//
 	// example:
@@ -1456,7 +1368,6 @@ type SDK interface {
 }
 
 type mgSDK struct {
-	bootstrapURL   string
 	certsURL       string
 	httpAdapterURL string
 	readerURL      string
@@ -1476,7 +1387,6 @@ type mgSDK struct {
 
 // Config contains sdk configuration parameters.
 type Config struct {
-	BootstrapURL   string
 	CertsURL       string
 	HTTPAdapterURL string
 	ReaderURL      string
@@ -1497,7 +1407,6 @@ type Config struct {
 // NewSDK returns new supermq SDK instance.
 func NewSDK(conf Config) SDK {
 	return &mgSDK{
-		bootstrapURL:   conf.BootstrapURL,
 		certsURL:       conf.CertsURL,
 		httpAdapterURL: conf.HTTPAdapterURL,
 		readerURL:      conf.ReaderURL,

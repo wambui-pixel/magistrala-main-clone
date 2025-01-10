@@ -4,8 +4,8 @@
 SMQ_DOCKER_IMAGE_NAME_PREFIX ?= supermq
 BUILD_DIR ?= build
 SERVICES = auth users clients groups channels domains http coap ws postgres-writer postgres-reader timescale-writer \
-	timescale-reader cli bootstrap mqtt provision certs invitations journal
-TEST_API_SERVICES = journal auth bootstrap certs http invitations notifiers provision readers clients users channels groups domains
+	timescale-reader cli mqtt certs invitations journal
+TEST_API_SERVICES = journal auth certs http invitations notifiers readers clients users channels groups domains
 TEST_API = $(addprefix test_api_,$(TEST_API_SERVICES))
 DOCKERS = $(addprefix docker_,$(SERVICES))
 DOCKERS_DEV = $(addprefix docker_dev_,$(SERVICES))
@@ -73,7 +73,7 @@ define make_docker_dev
 		-f docker/Dockerfile.dev ./build
 endef
 
-ADDON_SERVICES = bootstrap journal provision certs timescale-reader timescale-writer postgres-reader postgres-writer
+ADDON_SERVICES = journal certs timescale-reader timescale-writer postgres-reader postgres-writer
 
 EXTERNAL_SERVICES = vault prometheus
 
@@ -175,9 +175,7 @@ test_api_groups: TEST_API_URL := http://localhost:9004
 test_api_http: TEST_API_URL := http://localhost:8008
 test_api_invitations: TEST_API_URL := http://localhost:9020
 test_api_auth: TEST_API_URL := http://localhost:9001
-test_api_bootstrap: TEST_API_URL := http://localhost:9013
 test_api_certs: TEST_API_URL := http://localhost:9019
-test_api_provision: TEST_API_URL := http://localhost:9016
 test_api_readers: TEST_API_URL := http://localhost:9009 # This can be the URL of any reader service.
 test_api_journal: TEST_API_URL := http://localhost:9021
 
