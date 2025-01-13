@@ -66,6 +66,7 @@ jobs:
               - "certs/pki/vault.go"
               - "certs/service.go"
               - "journal/journal.go"
+              - "consumers/notifier.go"
 
       - name: Set up protoc
         if: steps.changes.outputs.proto == 'true'
@@ -162,6 +163,7 @@ jobs:
           mv ./pkg/events/mocks/publisher.go ./pkg/events/mocks/publisher.go.tmp
           mv ./pkg/policies/mocks/evaluator.go ./pkg/policies/mocks/evaluator.go.tmp
           mv ./pkg/policies/mocks/service.go ./pkg/policies/mocks/service.go.tmp
+          mv ./consumers/mocks/notifier.go ./consumers/mocks/notifier.go.tmp
 
           make mocks
 
@@ -220,3 +222,4 @@ jobs:
           check_mock_changes ./pkg/events/mocks/publisher.go " ./pkg/events/mocks/publisher.go"
           check_mock_changes ./pkg/policies/mocks/evaluator.go " ./pkg/policies/mocks/evaluator.go"
           check_mock_changes ./pkg/policies/mocks/service.go " ./pkg/policies/mocks/service.go"
+          check_mock_changes ./consumers/mocks/notifier.go " ./consumers/mocks/notifier.go"
