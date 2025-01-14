@@ -10,6 +10,7 @@ const (
 	getCmd     = "get"
 	enableCmd  = "enable"
 	disableCmd = "disable"
+	freezeCmd  = "freeze"
 	updCmd     = "update"
 	delCmd     = "delete"
 	rmCmd      = "remove"
