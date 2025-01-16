@@ -50,6 +50,7 @@ func (es *eventStore) CreateClients(ctx context.Context, session authn.Session, 
 		event := createClientEvent{
 			Client:           cli,
 			rolesProvisioned: rps,
+			Session:          session,
 		}
 		if err := es.Publish(ctx, event); err != nil {
 			return clis, rps, err
@@ -65,7 +66,7 @@ func (es *eventStore) Update(ctx context.Context, session authn.Session, client 
 		return cli, err
 	}
 
-	return es.update(ctx, "", cli)
+	return es.update(ctx, session, "", cli)
 }
 
 func (es *eventStore) UpdateTags(ctx context.Context, session authn.Session, client clients.Client) (clients.Client, error) {
@@ -74,7 +75,7 @@ func (es *eventStore) UpdateTags(ctx context.Context, session authn.Session, cli
 		return cli, err
 	}
 
-	return es.update(ctx, "tags", cli)
+	return es.update(ctx, session, "tags", cli)
 }
 
 func (es *eventStore) UpdateSecret(ctx context.Context, session authn.Session, id, key string) (clients.Client, error) {
@@ -83,12 +84,14 @@ func (es *eventStore) UpdateSecret(ctx context.Context, session authn.Session, i
 		return cli, err
 	}
 
-	return es.update(ctx, "secret", cli)
+	return es.update(ctx, session, "secret", cli)
 }
 
-func (es *eventStore) update(ctx context.Context, operation string, client clients.Client) (clients.Client, error) {
+func (es *eventStore) update(ctx context.Context, session authn.Session, operation string, client clients.Client) (clients.Client, error) {
 	event := updateClientEvent{
-		client, operation,
+		Client:    client,
+		operation: operation,
+		Session:   session,
 	}
 
 	if err := es.Publish(ctx, event); err != nil {
@@ -105,7 +108,8 @@ func (es *eventStore) View(ctx context.Context, session authn.Session, id string
 	}
 
 	event := viewClientEvent{
-		cli,
+		Client:  cli,
+		Session: session,
 	}
 	if err := es.Publish(ctx, event); err != nil {
 		return cli, err
@@ -120,8 +124,9 @@ func (es *eventStore) ListClients(ctx context.Context, session authn.Session, re
 		return cp, err
 	}
 	event := listClientEvent{
-		reqUserID,
-		pm,
+		reqUserID: reqUserID,
+		Page:      pm,
+		Session:   session,
 	}
 	if err := es.Publish(ctx, event); err != nil {
 		return cp, err
@@ -136,7 +141,7 @@ func (es *eventStore) Enable(ctx context.Context, session authn.Session, id stri
 		return cli, err
 	}
 
-	return es.changeStatus(ctx, cli)
+	return es.changeStatus(ctx, session, cli)
 }
 
 func (es *eventStore) Disable(ctx context.Context, session authn.Session, id string) (clients.Client, error) {
@@ -145,15 +150,16 @@ func (es *eventStore) Disable(ctx context.Context, session authn.Session, id str
 		return cli, err
 	}
 
-	return es.changeStatus(ctx, cli)
+	return es.changeStatus(ctx, session, cli)
 }
 
-func (es *eventStore) changeStatus(ctx context.Context, cli clients.Client) (clients.Client, error) {
+func (es *eventStore) changeStatus(ctx context.Context, session authn.Session, cli clients.Client) (clients.Client, error) {
 	event := changeStatusClientEvent{
 		id:        cli.ID,
 		updatedAt: cli.UpdatedAt,
 		updatedBy: cli.UpdatedBy,
 		status:    cli.Status.String(),
+		Session:   session,
 	}
 	if err := es.Publish(ctx, event); err != nil {
 		return cli, err
@@ -167,7 +173,10 @@ func (es *eventStore) Delete(ctx context.Context, session authn.Session, id stri
 		return err
 	}
 
-	event := removeClientEvent{id}
+	event := removeClientEvent{
+		id:      id,
+		Session: session,
+	}
 
 	if err := es.Publish(ctx, event); err != nil {
 		return err
@@ -181,7 +190,11 @@ func (es *eventStore) SetParentGroup(ctx context.Context, session authn.Session,
 		return err
 	}
 
-	event := setParentGroupEvent{parentGroupID: parentGroupID, id: id}
+	event := setParentGroupEvent{
+		parentGroupID: parentGroupID,
+		id:            id,
+		Session:       session,
+	}
 
 	if err := es.Publish(ctx, event); err != nil {
 		return err
@@ -195,7 +208,10 @@ func (es *eventStore) RemoveParentGroup(ctx context.Context, session authn.Sessi
 		return err
 	}
 
-	event := removeParentGroupEvent{id: id}
+	event := removeParentGroupEvent{
+		id:      id,
+		Session: session,
+	}
 
 	if err := es.Publish(ctx, event); err != nil {
 		return err

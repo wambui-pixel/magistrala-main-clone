@@ -7,6 +7,7 @@ import (
 	"time"
 
 	groups "github.com/absmach/supermq/groups"
+	"github.com/absmach/supermq/pkg/authn"
 	"github.com/absmach/supermq/pkg/events"
 	"github.com/absmach/supermq/pkg/roles"
 )
@@ -51,6 +52,7 @@ var (
 type createGroupEvent struct {
 	groups.Group
 	rolesProvisioned []roles.RoleProvision
+	authn.Session
 }
 
 func (cge createGroupEvent) Encode() (map[string]interface{}, error) {
@@ -60,11 +62,12 @@ func (cge createGroupEvent) Encode() (map[string]interface{}, error) {
 		"roles_provisioned": cge.rolesProvisioned,
 		"status":            cge.Status.String(),
 		"created_at":        cge.CreatedAt,
+		"domain":            cge.DomainID,
+		"user_id":           cge.UserID,
+		"token_type":        cge.Type.String(),
+		"super_admin":       cge.SuperAdmin,
 	}
 
-	if cge.Domain != "" {
-		val["domain"] = cge.Domain
-	}
 	if cge.Parent != "" {
 		val["parent"] = cge.Parent
 	}
@@ -86,20 +89,22 @@ func (cge createGroupEvent) Encode() (map[string]interface{}, error) {
 
 type updateGroupEvent struct {
 	groups.Group
+	authn.Session
 }
 
 func (uge updateGroupEvent) Encode() (map[string]interface{}, error) {
 	val := map[string]interface{}{
-		"operation":  groupUpdate,
-		"updated_at": uge.UpdatedAt,
-		"updated_by": uge.UpdatedBy,
+		"operation":   groupUpdate,
+		"updated_at":  uge.UpdatedAt,
+		"updated_by":  uge.UpdatedBy,
+		"domain":      uge.DomainID,
+		"user_id":     uge.UserID,
+		"token_type":  uge.Type.String(),
+		"super_admin": uge.SuperAdmin,
 	}
 
 	if uge.ID != "" {
 		val["id"] = uge.ID
-	}
-	if uge.Domain != "" {
-		val["domain"] = uge.Domain
 	}
 	if uge.Parent != "" {
 		val["parent"] = uge.Parent
@@ -128,31 +133,38 @@ type changeStatusGroupEvent struct {
 	status    string
 	updatedAt time.Time
 	updatedBy string
+	authn.Session
 }
 
 func (rge changeStatusGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation":  groupChangeStatus,
-		"id":         rge.id,
-		"status":     rge.status,
-		"updated_at": rge.updatedAt,
-		"updated_by": rge.updatedBy,
+		"operation":   groupChangeStatus,
+		"id":          rge.id,
+		"status":      rge.status,
+		"updated_at":  rge.updatedAt,
+		"updated_by":  rge.updatedBy,
+		"domain":      rge.DomainID,
+		"user_id":     rge.UserID,
+		"token_type":  rge.Type.String(),
+		"super_admin": rge.SuperAdmin,
 	}, nil
 }
 
 type viewGroupEvent struct {
 	groups.Group
+	authn.Session
 }
 
 func (vge viewGroupEvent) Encode() (map[string]interface{}, error) {
 	val := map[string]interface{}{
-		"operation": groupView,
-		"id":        vge.ID,
+		"operation":   groupView,
+		"id":          vge.ID,
+		"domain":      vge.DomainID,
+		"user_id":     vge.UserID,
+		"token_type":  vge.Type.String(),
+		"super_admin": vge.SuperAdmin,
 	}
 
-	if vge.Domain != "" {
-		val["domain"] = vge.Domain
-	}
 	if vge.Parent != "" {
 		val["parent"] = vge.Parent
 	}
@@ -183,21 +195,26 @@ func (vge viewGroupEvent) Encode() (map[string]interface{}, error) {
 
 type listGroupEvent struct {
 	groups.PageMeta
+	domainID   string
+	userID     string
+	tokenType  string
+	superAdmin bool
 }
 
 func (lge listGroupEvent) Encode() (map[string]interface{}, error) {
 	val := map[string]interface{}{
-		"operation": groupList,
-		"total":     lge.Total,
-		"offset":    lge.Offset,
-		"limit":     lge.Limit,
+		"operation":   groupList,
+		"total":       lge.Total,
+		"offset":      lge.Offset,
+		"limit":       lge.Limit,
+		"domain":      lge.domainID,
+		"user_id":     lge.userID,
+		"token_type":  lge.tokenType,
+		"super_admin": lge.superAdmin,
 	}
 
 	if lge.Name != "" {
 		val["name"] = lge.Name
-	}
-	if lge.DomainID != "" {
-		val["domain_id"] = lge.DomainID
 	}
 	if lge.Tag != "" {
 		val["tag"] = lge.Tag
@@ -213,24 +230,27 @@ func (lge listGroupEvent) Encode() (map[string]interface{}, error) {
 }
 
 type listUserGroupEvent struct {
-	userID string
+	userID   string
+	domainID string
 	groups.PageMeta
+	tokenType  string
+	superAdmin bool
 }
 
 func (luge listUserGroupEvent) Encode() (map[string]interface{}, error) {
 	val := map[string]interface{}{
-		"operation": groupListUserGroups,
-		"user_id":   luge.userID,
-		"total":     luge.Total,
-		"offset":    luge.Offset,
-		"limit":     luge.Limit,
+		"operation":   groupListUserGroups,
+		"user_id":     luge.userID,
+		"domain":      luge.domainID,
+		"total":       luge.Total,
+		"offset":      luge.Offset,
+		"limit":       luge.Limit,
+		"token_type":  luge.tokenType,
+		"super_admin": luge.superAdmin,
 	}
 
 	if luge.Name != "" {
 		val["name"] = luge.Name
-	}
-	if luge.DomainID != "" {
-		val["domain_id"] = luge.DomainID
 	}
 	if luge.Tag != "" {
 		val["tag"] = luge.Tag
@@ -247,27 +267,37 @@ func (luge listUserGroupEvent) Encode() (map[string]interface{}, error) {
 
 type deleteGroupEvent struct {
 	id string
+	authn.Session
 }
 
 func (rge deleteGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation": groupRemove,
-		"id":        rge.id,
+		"operation":   groupRemove,
+		"id":          rge.id,
+		"domain":      rge.DomainID,
+		"user_id":     rge.UserID,
+		"token_type":  rge.Type.String(),
+		"super_admin": rge.SuperAdmin,
 	}, nil
 }
 
 type retrieveGroupHierarchyEvent struct {
 	id string
 	groups.HierarchyPageMeta
+	authn.Session
 }
 
 func (vcge retrieveGroupHierarchyEvent) Encode() (map[string]interface{}, error) {
 	val := map[string]interface{}{
-		"operation": groupRetrieveGroupHierarchy,
-		"id":        vcge.id,
-		"level":     vcge.Level,
-		"direction": vcge.Direction,
-		"tree":      vcge.Tree,
+		"operation":   groupRetrieveGroupHierarchy,
+		"id":          vcge.id,
+		"level":       vcge.Level,
+		"direction":   vcge.Direction,
+		"tree":        vcge.Tree,
+		"domain":      vcge.DomainID,
+		"user_id":     vcge.UserID,
+		"token_type":  vcge.Type.String(),
+		"super_admin": vcge.SuperAdmin,
 	}
 	return val, nil
 }
@@ -275,41 +305,54 @@ func (vcge retrieveGroupHierarchyEvent) Encode() (map[string]interface{}, error)
 type addParentGroupEvent struct {
 	id       string
 	parentID string
+	authn.Session
 }
 
 func (apge addParentGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation": groupAddParentGroup,
-		"id":        apge.id,
-		"parent_id": apge.parentID,
+		"operation":   groupAddParentGroup,
+		"id":          apge.id,
+		"parent_id":   apge.parentID,
+		"domain":      apge.DomainID,
+		"user_id":     apge.UserID,
+		"token_type":  apge.Type.String(),
+		"super_admin": apge.SuperAdmin,
 	}, nil
 }
 
 type removeParentGroupEvent struct {
 	id string
+	authn.Session
 }
 
 func (rpge removeParentGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation": groupRemoveParentGroup,
-		"id":        rpge.id,
+		"operation":   groupRemoveParentGroup,
+		"id":          rpge.id,
+		"domain":      rpge.DomainID,
+		"user_id":     rpge.UserID,
+		"token_type":  rpge.Type.String(),
+		"super_admin": rpge.SuperAdmin,
 	}, nil
 }
 
 type viewParentGroupEvent struct {
-	id string
+	id       string
+	domainID string
 }
 
 func (vpge viewParentGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		"operation": groupViewParentGroup,
 		"id":        vpge.id,
+		"domain":    vpge.domainID,
 	}, nil
 }
 
 type addChildrenGroupsEvent struct {
 	id          string
 	childrenIDs []string
+	authn.Session
 }
 
 func (acge addChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
@@ -317,12 +360,17 @@ func (acge addChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
 		"operation":   groupAddChildrenGroups,
 		"id":          acge.id,
 		"childre_ids": acge.childrenIDs,
+		"domain":      acge.DomainID,
+		"user_id":     acge.UserID,
+		"token_type":  acge.Type.String(),
+		"super_admin": acge.SuperAdmin,
 	}, nil
 }
 
 type removeChildrenGroupsEvent struct {
 	id          string
 	childrenIDs []string
+	authn.Session
 }
 
 func (rcge removeChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
@@ -330,17 +378,26 @@ func (rcge removeChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
 		"operation":    groupRemoveChildrenGroups,
 		"id":           rcge.id,
 		"children_ids": rcge.childrenIDs,
+		"domain":       rcge.DomainID,
+		"user_id":      rcge.UserID,
+		"token_type":   rcge.Type.String(),
+		"super_admin":  rcge.SuperAdmin,
 	}, nil
 }
 
 type removeAllChildrenGroupsEvent struct {
 	id string
+	authn.Session
 }
 
 func (racge removeAllChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation": groupRemoveAllChildrenGroups,
-		"id":        racge.id,
+		"operation":   groupRemoveAllChildrenGroups,
+		"id":          racge.id,
+		"domain":      racge.DomainID,
+		"user_id":     racge.UserID,
+		"token_type":  racge.Type.String(),
+		"super_admin": racge.SuperAdmin,
 	}, nil
 }
 
@@ -349,6 +406,10 @@ type listChildrenGroupsEvent struct {
 	startLevel int64
 	endLevel   int64
 	groups.PageMeta
+	domainID   string
+	userID     string
+	tokenType  string
+	superAdmin bool
 }
 
 func (vcge listChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
@@ -360,12 +421,13 @@ func (vcge listChildrenGroupsEvent) Encode() (map[string]interface{}, error) {
 		"total":       vcge.Total,
 		"offset":      vcge.Offset,
 		"limit":       vcge.Limit,
+		"domain":      vcge.domainID,
+		"user_id":     vcge.userID,
+		"token_type":  vcge.tokenType,
+		"super_admin": vcge.superAdmin,
 	}
 	if vcge.Name != "" {
 		val["name"] = vcge.Name
-	}
-	if vcge.DomainID != "" {
-		val["domain_id"] = vcge.DomainID
 	}
 	if vcge.Tag != "" {
 		val["tag"] = vcge.Tag
