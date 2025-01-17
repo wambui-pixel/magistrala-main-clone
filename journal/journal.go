@@ -137,6 +137,16 @@ func (page JournalsPage) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a)
 }
 
+type ClientTelemetry struct {
+	ClientID         string    `json:"client_id"`
+	DomainID         string    `json:"domain_id"`
+	Subscriptions    []string  `json:"subscriptions"`
+	InboundMessages  uint64    `json:"inbound_messages"`
+	OutboundMessages uint64    `json:"outbound_messages"`
+	FirstSeen        time.Time `json:"first_seen"`
+	LastSeen         time.Time `json:"last_seen"`
+}
+
 // Service provides access to the journal log service.
 //
 //go:generate mockery --name Service --output=./mocks --filename service.go --quiet --note "Copyright (c) Abstract Machines"
@@ -146,6 +156,9 @@ type Service interface {
 
 	// RetrieveAll retrieves all journals from the database with the given page.
 	RetrieveAll(ctx context.Context, session smqauthn.Session, page Page) (JournalsPage, error)
+
+	// RetrieveClientTelemetry retrieves telemetry data for a client.
+	RetrieveClientTelemetry(ctx context.Context, session smqauthn.Session, clientID string) (ClientTelemetry, error)
 }
 
 // Repository provides access to the journal log database.
@@ -157,4 +170,13 @@ type Repository interface {
 
 	// RetrieveAll retrieves all journals from the database with the given page.
 	RetrieveAll(ctx context.Context, page Page) (JournalsPage, error)
+
+	// SaveClientTelemetry persists telemetry data for a client to the database.
+	SaveClientTelemetry(ctx context.Context, ct ClientTelemetry) error
+
+	// RetrieveClientTelemetry retrieves telemetry data for a client from the database.
+	RetrieveClientTelemetry(ctx context.Context, clientID, domainID string) (ClientTelemetry, error)
+
+	// DeleteClientTelemetry removes telemetry data for a client from the database.
+	DeleteClientTelemetry(ctx context.Context, clientID, domainID string) error
 }

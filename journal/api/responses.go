@@ -27,3 +27,7 @@ func (res pageRes) Code() int {
 func (res pageRes) Empty() bool {
 	return false
 }
+
+type clientTelemetryRes struct {
+	journal.ClientTelemetry `json:",inline"`
+}

@@ -69,3 +69,21 @@ func (lm *loggingMiddleware) RetrieveAll(ctx context.Context, session smqauthn.S
 
 	return lm.service.RetrieveAll(ctx, session, page)
 }
+
+func (lm *loggingMiddleware) RetrieveClientTelemetry(ctx context.Context, session smqauthn.Session, clientID string) (ct journal.ClientTelemetry, err error) {
+	defer func(begin time.Time) {
+		args := []any{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("client_id", clientID),
+			slog.String("domain_id", session.DomainID),
+		}
+		if err != nil {
+			args = append(args, slog.Any("error", err))
+			lm.logger.Warn("Retrieve client telemetry failed", args...)
+			return
+		}
+		lm.logger.Info("Retrieve client telemetry completed successfully", args...)
+	}(time.Now())
+
+	return lm.service.RetrieveClientTelemetry(ctx, session, clientID)
+}

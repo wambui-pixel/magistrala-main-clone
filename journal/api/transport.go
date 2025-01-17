@@ -48,12 +48,23 @@ func MakeHandler(svc journal.Service, authn smqauthn.Authentication, logger *slo
 		opts...,
 	), "list_user_journals").ServeHTTP)
 
-	mux.With(api.AuthenticateMiddleware(authn, true)).Get("/{domainID}/journal/{entityType}/{entityID}", otelhttp.NewHandler(kithttp.NewServer(
-		retrieveJournalsEndpoint(svc),
-		decodeRetrieveEntityJournalReq,
-		api.EncodeResponse,
-		opts...,
-	), "list__entity_journals").ServeHTTP)
+	mux.Route("/{domainID}/journal", func(r chi.Router) {
+		r.Use(api.AuthenticateMiddleware(authn, true))
+
+		r.Get("/{entityType}/{entityID}", otelhttp.NewHandler(kithttp.NewServer(
+			retrieveJournalsEndpoint(svc),
+			decodeRetrieveEntityJournalReq,
+			api.EncodeResponse,
+			opts...,
+		), "list__entity_journals").ServeHTTP)
+
+		r.Get("/client/{clientID}/telemetry", otelhttp.NewHandler(kithttp.NewServer(
+			retrieveClientTelemetryEndpoint(svc),
+			decodeRetrieveClientTelemetryReq,
+			api.EncodeResponse,
+			opts...,
+		), "view_client_telemetry").ServeHTTP)
+	})
 
 	mux.Get("/health", supermq.Health(svcName, instanceID))
 	mux.Handle("/metrics", promhttp.Handler())
@@ -159,4 +170,12 @@ func decodePageQuery(r *http.Request) (journal.Page, error) {
 		WithMetadata:   metadata,
 		Direction:      dir,
 	}, nil
+}
+
+func decodeRetrieveClientTelemetryReq(_ context.Context, r *http.Request) (interface{}, error) {
+	req := retrieveClientTelemetryReq{
+		clientID: chi.URLParam(r, "clientID"),
+	}
+
+	return req, nil
 }

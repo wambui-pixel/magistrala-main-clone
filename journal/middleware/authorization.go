@@ -12,9 +12,11 @@ import (
 	"github.com/absmach/supermq/pkg/policies"
 )
 
-var _ journal.Service = (*authorizationMiddleware)(nil)
+var (
+	_ journal.Service = (*authorizationMiddleware)(nil)
 
-var readPermission = "read_permission"
+	readPermission = "read_permission"
+)
 
 type authorizationMiddleware struct {
 	svc   journal.Service
@@ -61,4 +63,22 @@ func (am *authorizationMiddleware) RetrieveAll(ctx context.Context, session smqa
 	}
 
 	return am.svc.RetrieveAll(ctx, session, page)
+}
+
+func (am *authorizationMiddleware) RetrieveClientTelemetry(ctx context.Context, session smqauthn.Session, clientID string) (journal.ClientTelemetry, error) {
+	req := smqauthz.PolicyReq{
+		Domain:      session.DomainID,
+		SubjectType: policies.UserType,
+		SubjectKind: policies.UsersKind,
+		Subject:     session.UserID,
+		Permission:  readPermission,
+		ObjectType:  policies.ClientType,
+		Object:      clientID,
+	}
+
+	if err := am.authz.Authorize(ctx, req); err != nil {
+		return journal.ClientTelemetry{}, err
+	}
+
+	return am.svc.RetrieveClientTelemetry(ctx, session, clientID)
 }

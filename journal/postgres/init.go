@@ -27,8 +27,19 @@ func Migration() *migrate.MemoryMigrationSource {
 					`CREATE INDEX idx_journal_default_group_filter ON journal(operation, (attributes->>'id'), (attributes->>'group_id'), occurred_at DESC);`,
 					`CREATE INDEX idx_journal_default_client_filter ON journal(operation, (attributes->>'id'), (attributes->>'client_id'), occurred_at DESC);`,
 					`CREATE INDEX idx_journal_default_channel_filter ON journal(operation, (attributes->>'id'), (attributes->>'channel_id'), occurred_at DESC);`,
+					`CREATE TABLE IF NOT EXISTS clients_telemetry (
+						client_id         VARCHAR(36) NOT NULL,
+						domain_id         VARCHAR(36) NOT NULL,
+						subscriptions     TEXT[],
+						inbound_messages  BIGINT DEFAULT 0,
+						outbound_messages BIGINT DEFAULT 0,
+						first_seen        TIMESTAMP,
+						last_seen         TIMESTAMP,
+						PRIMARY KEY (client_id, domain_id)
+					)`,
 				},
 				Down: []string{
+					`DROP TABLE IF EXISTS clients_telemetry`,
 					`DROP TABLE IF EXISTS journal`,
 				},
 			},

@@ -42,3 +42,12 @@ func (svc *service) RetrieveAll(ctx context.Context, session smqauthn.Session, p
 
 	return journalPage, nil
 }
+
+func (svc *service) RetrieveClientTelemetry(ctx context.Context, session smqauthn.Session, clientID string) (ClientTelemetry, error) {
+	ct, err := svc.repository.RetrieveClientTelemetry(ctx, clientID, session.DomainID)
+	if err != nil {
+		return ClientTelemetry{}, errors.Wrap(svcerr.ErrViewEntity, err)
+	}
+
+	return ct, nil
+}

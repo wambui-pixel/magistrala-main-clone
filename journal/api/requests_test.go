@@ -124,3 +124,33 @@ func TestRetrieveJournalsReqValidate(t *testing.T) {
 		})
 	}
 }
+
+func TestRetrieveClientTelemetryReqValidate(t *testing.T) {
+	cases := []struct {
+		desc string
+		req  retrieveClientTelemetryReq
+		err  error
+	}{
+		{
+			desc: "valid",
+			req: retrieveClientTelemetryReq{
+				clientID: "id",
+			},
+			err: nil,
+		},
+		{
+			desc: "missing client id",
+			req: retrieveClientTelemetryReq{
+				clientID: "",
+			},
+			err: apiutil.ErrMissingID,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.desc, func(t *testing.T) {
+			err := c.req.validate()
+			assert.Equal(t, c.err, err)
+		})
+	}
+}
