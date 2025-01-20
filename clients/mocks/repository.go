@@ -312,34 +312,6 @@ func (_m *Repository) RetrieveAll(ctx context.Context, pm clients.Page) (clients
 	return r0, r1
 }
 
-// RetrieveAllByIDs provides a mock function with given fields: ctx, pm
-func (_m *Repository) RetrieveAllByIDs(ctx context.Context, pm clients.Page) (clients.ClientsPage, error) {
-	ret := _m.Called(ctx, pm)
-
-	if len(ret) == 0 {
-		panic("no return value specified for RetrieveAllByIDs")
-	}
-
-	var r0 clients.ClientsPage
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, clients.Page) (clients.ClientsPage, error)); ok {
-		return rf(ctx, pm)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, clients.Page) clients.ClientsPage); ok {
-		r0 = rf(ctx, pm)
-	} else {
-		r0 = ret.Get(0).(clients.ClientsPage)
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, clients.Page) error); ok {
-		r1 = rf(ctx, pm)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // RetrieveAllRoles provides a mock function with given fields: ctx, entityID, limit, offset
 func (_m *Repository) RetrieveAllRoles(ctx context.Context, entityID string, limit uint64, offset uint64) (roles.RolePage, error) {
 	ret := _m.Called(ctx, entityID, limit, offset)
@@ -570,6 +542,34 @@ func (_m *Repository) RetrieveRole(ctx context.Context, roleID string) (roles.Ro
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
 		r1 = rf(ctx, roleID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RetrieveUserClients provides a mock function with given fields: ctx, domainID, userID, pm
+func (_m *Repository) RetrieveUserClients(ctx context.Context, domainID string, userID string, pm clients.Page) (clients.ClientsPage, error) {
+	ret := _m.Called(ctx, domainID, userID, pm)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RetrieveUserClients")
+	}
+
+	var r0 clients.ClientsPage
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, clients.Page) (clients.ClientsPage, error)); ok {
+		return rf(ctx, domainID, userID, pm)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, clients.Page) clients.ClientsPage); ok {
+		r0 = rf(ctx, domainID, userID, pm)
+	} else {
+		r0 = ret.Get(0).(clients.ClientsPage)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, clients.Page) error); ok {
+		r1 = rf(ctx, domainID, userID, pm)
 	} else {
 		r1 = ret.Error(1)
 	}

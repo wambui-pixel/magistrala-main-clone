@@ -12,13 +12,11 @@ import (
 	grpcCommonV1 "github.com/absmach/supermq/api/grpc/common/v1"
 	grpcGroupsV1 "github.com/absmach/supermq/api/grpc/groups/v1"
 	apiutil "github.com/absmach/supermq/api/http/util"
-	smqauth "github.com/absmach/supermq/auth"
 	"github.com/absmach/supermq/pkg/authn"
 	"github.com/absmach/supermq/pkg/errors"
 	svcerr "github.com/absmach/supermq/pkg/errors/service"
 	"github.com/absmach/supermq/pkg/policies"
 	"github.com/absmach/supermq/pkg/roles"
-	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -131,113 +129,29 @@ func (svc service) View(ctx context.Context, session authn.Session, id string) (
 	return client, nil
 }
 
-func (svc service) ListClients(ctx context.Context, session authn.Session, reqUserID string, pm Page) (ClientsPage, error) {
-	var ids []string
-	var err error
-	switch {
-	case (reqUserID != "" && reqUserID != session.UserID):
-		rtids, err := svc.listClientIDs(ctx, smqauth.EncodeDomainUserID(session.DomainID, reqUserID), pm.Permission)
+func (svc service) ListClients(ctx context.Context, session authn.Session, pm Page) (ClientsPage, error) {
+	switch session.SuperAdmin {
+	case true:
+		cp, err := svc.repo.RetrieveAll(ctx, pm)
 		if err != nil {
-			return ClientsPage{}, errors.Wrap(svcerr.ErrNotFound, err)
+			return ClientsPage{}, errors.Wrap(svcerr.ErrViewEntity, err)
 		}
-		ids, err = svc.filterAllowedClientIDs(ctx, session.DomainUserID, pm.Permission, rtids)
-		if err != nil {
-			return ClientsPage{}, errors.Wrap(svcerr.ErrNotFound, err)
-		}
+		return cp, nil
 	default:
-		switch session.SuperAdmin {
-		case true:
-			pm.Domain = session.DomainID
-		default:
-			ids, err = svc.listClientIDs(ctx, session.DomainUserID, pm.Permission)
-			if err != nil {
-				return ClientsPage{}, errors.Wrap(svcerr.ErrNotFound, err)
-			}
+		cp, err := svc.repo.RetrieveUserClients(ctx, session.DomainID, session.UserID, pm)
+		if err != nil {
+			return ClientsPage{}, errors.Wrap(svcerr.ErrViewEntity, err)
 		}
+		return cp, nil
 	}
+}
 
-	if len(ids) == 0 && pm.Domain == "" {
-		return ClientsPage{}, nil
-	}
-	pm.IDs = ids
-	tp, err := svc.repo.SearchClients(ctx, pm)
+func (svc service) ListUserClients(ctx context.Context, session authn.Session, userID string, pm Page) (ClientsPage, error) {
+	cp, err := svc.repo.RetrieveUserClients(ctx, session.DomainID, userID, pm)
 	if err != nil {
 		return ClientsPage{}, errors.Wrap(svcerr.ErrViewEntity, err)
 	}
-
-	if pm.ListPerms && len(tp.Clients) > 0 {
-		g, ctx := errgroup.WithContext(ctx)
-
-		for i := range tp.Clients {
-			// Copying loop variable "i" to avoid "loop variable captured by func literal"
-			iter := i
-			g.Go(func() error {
-				return svc.retrievePermissions(ctx, session.DomainUserID, &tp.Clients[iter])
-			})
-		}
-
-		if err := g.Wait(); err != nil {
-			return ClientsPage{}, err
-		}
-	}
-	return tp, nil
-}
-
-// Experimental functions used for async calling of svc.listUserClientPermission. This might be helpful during listing of large number of entities.
-func (svc service) retrievePermissions(ctx context.Context, userID string, client *Client) error {
-	permissions, err := svc.listUserClientPermission(ctx, userID, client.ID)
-	if err != nil {
-		return err
-	}
-	client.Permissions = permissions
-	return nil
-}
-
-func (svc service) listUserClientPermission(ctx context.Context, userID, clientID string) ([]string, error) {
-	permissions, err := svc.policy.ListPermissions(ctx, policies.Policy{
-		SubjectType: policies.UserType,
-		Subject:     userID,
-		Object:      clientID,
-		ObjectType:  policies.ClientType,
-	}, []string{})
-	if err != nil {
-		return []string{}, errors.Wrap(svcerr.ErrAuthorization, err)
-	}
-	return permissions, nil
-}
-
-func (svc service) listClientIDs(ctx context.Context, userID, permission string) ([]string, error) {
-	tids, err := svc.policy.ListAllObjects(ctx, policies.Policy{
-		SubjectType: policies.UserType,
-		Subject:     userID,
-		Permission:  permission,
-		ObjectType:  policies.ClientType,
-	})
-	if err != nil {
-		return nil, errors.Wrap(svcerr.ErrNotFound, err)
-	}
-	return tids.Policies, nil
-}
-
-func (svc service) filterAllowedClientIDs(ctx context.Context, userID, permission string, clientIDs []string) ([]string, error) {
-	var ids []string
-	tids, err := svc.policy.ListAllObjects(ctx, policies.Policy{
-		SubjectType: policies.UserType,
-		Subject:     userID,
-		Permission:  permission,
-		ObjectType:  policies.ClientType,
-	})
-	if err != nil {
-		return nil, errors.Wrap(svcerr.ErrNotFound, err)
-	}
-	for _, clientID := range clientIDs {
-		for _, tid := range tids.Policies {
-			if clientID == tid {
-				ids = append(ids, clientID)
-			}
-		}
-	}
-	return ids, nil
+	return cp, nil
 }
 
 func (svc service) Update(ctx context.Context, session authn.Session, cli Client) (Client, error) {

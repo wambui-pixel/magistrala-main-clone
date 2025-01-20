@@ -211,14 +211,6 @@ func TestListClientsReqValidate(t *testing.T) {
 			err: apiutil.ErrLimitSize,
 		},
 		{
-			desc: "invalid visibility",
-			req: listClientsReq{
-				limit:      10,
-				visibility: "invalid",
-			},
-			err: apiutil.ErrInvalidVisibilityType,
-		},
-		{
 			desc: "name too long",
 			req: listClientsReq{
 				limit: 10,

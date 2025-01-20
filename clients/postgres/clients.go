@@ -20,6 +20,7 @@ import (
 	"github.com/absmach/supermq/pkg/postgres"
 	rolesPostgres "github.com/absmach/supermq/pkg/roles/repo/postgres"
 	"github.com/jackc/pgtype"
+	"github.com/lib/pq"
 )
 
 const (
@@ -247,6 +248,350 @@ func (repo *clientRepo) RetrieveAll(ctx context.Context, pm clients.Page) (clien
 	return page, nil
 }
 
+func (repo *clientRepo) RetrieveUserClients(ctx context.Context, domainID, userID string, pm clients.Page) (clients.ClientsPage, error) {
+	return repo.retrieveClients(ctx, domainID, userID, pm)
+}
+
+func (repo *clientRepo) retrieveClients(ctx context.Context, domainID, userID string, pm clients.Page) (clients.ClientsPage, error) {
+	pageQuery, err := PageQuery(pm)
+	if err != nil {
+		return clients.ClientsPage{}, err
+	}
+
+	bq := repo.userClientBaseQuery(domainID, userID)
+
+	q := fmt.Sprintf(`
+				%s
+				SELECT
+				  	c.id,
+					c.name,
+					c.domain_id,
+					c.parent_group_id,
+					c.identity,
+					c.secret,
+					c.tags,
+					c.metadata,
+					c.created_at,
+					c.updated_at,
+					c.updated_by,
+					c.status,
+					c.parent_group_path,
+					c.role_id,
+					c.role_name,
+					c.actions,
+					c.access_type,
+					c.access_provider_id,
+					c.access_provider_role_id,
+					c.access_provider_role_name,
+					c.access_provider_role_actions
+				FROM
+					final_clients c
+				%s
+	`, bq, pageQuery)
+
+	q = applyOrdering(q, pm)
+
+	dbPage, err := ToDBClientsPage(pm)
+	if err != nil {
+		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
+	}
+
+	rows, err := repo.DB.NamedQueryContext(ctx, q, dbPage)
+	if err != nil {
+		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
+	}
+	defer rows.Close()
+
+	var items []clients.Client
+	for rows.Next() {
+		dbc := DBClient{}
+		if err := rows.StructScan(&dbc); err != nil {
+			return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
+		}
+
+		c, err := ToClient(dbc)
+		if err != nil {
+			return clients.ClientsPage{}, err
+		}
+
+		items = append(items, c)
+	}
+
+	connJoinQuery := ""
+	if pm.Channel != "" {
+		connJoinQuery = "JOIN connection conn ON conn.client_id = c.id"
+	}
+	cq := fmt.Sprintf(`%s
+						SELECT COUNT(*) AS total_count
+						FROM (
+							SELECT
+								c.id,
+								c.name,
+								c.domain_id,
+								c.parent_group_id,
+								c.identity,
+								c.secret,
+								c.tags,
+								c.metadata,
+								c.created_at,
+								c.updated_at,
+								c.updated_by,
+								c.status,
+								c.parent_group_path,
+								c.role_id,
+								c.role_name,
+								c.actions,
+								c.access_type,
+								c.access_provider_id,
+								c.access_provider_role_id,
+								c.access_provider_role_name,
+								c.access_provider_role_actions
+							FROM
+								final_clients c
+							%s
+							%s
+						) AS subquery;
+			`, bq, connJoinQuery, pageQuery)
+
+	total, err := postgres.Total(ctx, repo.DB, cq, dbPage)
+	if err != nil {
+		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
+	}
+
+	page := clients.ClientsPage{
+		Clients: items,
+		Page: clients.Page{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+		},
+	}
+
+	return page, nil
+}
+
+func (repo *clientRepo) userClientBaseQuery(domainID, userID string) string {
+	return fmt.Sprintf(`
+						WITH direct_clients AS (
+							SELECT
+								c.id,
+								c.name,
+								c.domain_id,
+								c.parent_group_id,
+								c.identity,
+								c.secret,
+								c.tags,
+								c.metadata,
+								c.created_at,
+								c.updated_at,
+								c.updated_by,
+								c.status,
+								text2ltree('') as parent_group_path,
+								cr.id AS role_id,
+								cr."name" AS role_name,
+								array_agg(cra."action") AS actions,
+								'direct' as access_type,
+								'' AS access_provider_id,
+								'' AS access_provider_role_id,
+								'' AS access_provider_role_name,
+								array[]::::text[] AS access_provider_role_actions
+							FROM
+								clients_role_members crm
+							JOIN
+								clients_role_actions cra ON cra.role_id = crm.role_id
+							JOIN
+								clients_roles cr ON cr.id = crm.role_id
+							JOIN
+								clients c ON c.id = cr.entity_id
+							WHERE
+								crm.member_id = '%s'
+								AND c.domain_id = '%s'
+							GROUP BY
+								cr.entity_id, crm.member_id, cr.id, cr."name", c.id
+						),
+						direct_groups AS (
+							SELECT
+								g.*,
+								gr.entity_id AS entity_id,
+								grm.member_id AS member_id,
+								gr.id AS role_id,
+								gr."name" AS role_name,
+								array_agg(gra."action") AS actions
+							FROM
+								groups_role_members grm
+							JOIN
+								groups_role_actions gra ON gra.role_id = grm.role_id
+							JOIN
+								groups_roles gr ON gr.id = grm.role_id
+							JOIN
+								"groups" g ON g.id = gr.entity_id
+							WHERE
+								grm.member_id = '%s'
+								AND g.domain_id = '%s'
+							GROUP BY
+								gr.entity_id, grm.member_id, gr.id, gr."name", g."path", g.id
+						),
+						direct_groups_with_subgroup AS (
+							SELECT
+								*
+							FROM direct_groups
+							WHERE EXISTS (
+								SELECT 1
+								FROM unnest(direct_groups.actions) AS action
+								WHERE action LIKE 'subgroup_%%'
+							)
+						),
+						indirect_child_groups AS (
+							SELECT
+								DISTINCT indirect_child_groups.id as child_id,
+								indirect_child_groups.*,
+								dgws.id as access_provider_id,
+								dgws.role_id as access_provider_role_id,
+								dgws.role_name as access_provider_role_name,
+								dgws.actions as access_provider_role_actions
+							FROM
+								direct_groups_with_subgroup dgws
+							JOIN
+								groups indirect_child_groups ON indirect_child_groups.path <@ dgws.path
+							WHERE
+								indirect_child_groups.domain_id = '%s'
+								AND NOT EXISTS (
+									SELECT 1
+									FROM direct_groups_with_subgroup dgws
+									WHERE dgws.id = indirect_child_groups.id
+								)
+						),
+						final_groups AS (
+							SELECT
+								id,
+								parent_id,
+								domain_id,
+								"name",
+								description,
+								metadata,
+								created_at,
+								updated_at,
+								updated_by,
+								status,
+								"path",
+								role_id,
+								role_name,
+								actions,
+								'direct_group' AS access_type,
+								'' AS access_provider_id,
+								'' AS access_provider_role_id,
+								'' AS access_provider_role_name,
+								array[]::::text[] AS access_provider_role_actions
+							FROM
+								direct_groups
+							UNION
+							SELECT
+								id,
+								parent_id,
+								domain_id,
+								"name",
+								description,
+								metadata,
+								created_at,
+								updated_at,
+								updated_by,
+								status,
+								"path",
+								'' AS role_id,
+								'' AS role_name,
+								array[]::::text[] AS actions,
+								'indirect_group' AS access_type,
+								access_provider_id,
+								access_provider_role_id,
+								access_provider_role_name,
+								access_provider_role_actions
+							FROM
+								indirect_child_groups
+						),
+						group_direct_clients AS (
+							SELECT
+								c.id,
+								c.name,
+								c.domain_id,
+								c.parent_group_id,
+								c.identity,
+								c.secret,
+								c.tags,
+								c.metadata,
+								c.created_at,
+								c.updated_at,
+								c.updated_by,
+								c.status,
+								g.path AS parent_group_path,
+								g.role_id,
+								g.role_name,
+								g.actions,
+								g.access_type,
+								g.access_provider_id,
+								g.access_provider_role_id,
+								g.access_provider_role_name,
+								g.access_provider_role_actions
+							FROM
+								final_groups g
+							JOIN
+								clients c ON c.parent_group_id = g.id
+							WHERE
+								c.id NOT IN (SELECT id FROM direct_clients)
+							UNION
+							SELECT
+								dc.id,
+								dc.name,
+								dc.domain_id,
+								dc.parent_group_id,
+								dc.identity,
+								dc.secret,
+								dc.tags,
+								dc.metadata,
+								dc.created_at,
+								dc.updated_at,
+								dc.updated_by,
+								dc.status,
+								dc.parent_group_path,
+								dc.role_id,
+								dc.role_name,
+								dc.actions,
+								dc.access_type,
+								dc.access_provider_id,
+								dc.access_provider_role_id,
+								dc.access_provider_role_name,
+								dc.access_provider_role_actions
+							FROM
+								direct_clients AS dc
+						),
+						final_clients AS (
+							SELECT
+								gdc.id,
+								gdc.name,
+								gdc.domain_id,
+								gdc.parent_group_id,
+								gdc.identity,
+								gdc.secret,
+								gdc.tags,
+								gdc.metadata,
+								gdc.created_at,
+								gdc.updated_at,
+								gdc.updated_by,
+								gdc.status,
+								gdc.parent_group_path,
+								gdc.role_id,
+								gdc.role_name,
+								gdc.actions,
+								gdc.access_type,
+								gdc.access_provider_id,
+								gdc.access_provider_role_id,
+								gdc.access_provider_role_name,
+								gdc.access_provider_role_actions
+							FROM
+								group_direct_clients AS gdc
+						)
+	`, userID, domainID, userID, domainID, domainID)
+}
+
 func (repo *clientRepo) SearchClients(ctx context.Context, pm clients.Page) (clients.ClientsPage, error) {
 	query, err := PageQuery(pm)
 	if err != nil {
@@ -285,64 +630,6 @@ func (repo *clientRepo) SearchClients(ctx context.Context, pm clients.Page) (cli
 	}
 
 	cq := fmt.Sprintf(`SELECT COUNT(*) FROM clients c %s;`, tq)
-	total, err := postgres.Total(ctx, repo.DB, cq, dbPage)
-	if err != nil {
-		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
-	}
-
-	page := clients.ClientsPage{
-		Clients: items,
-		Page: clients.Page{
-			Total:  total,
-			Offset: pm.Offset,
-			Limit:  pm.Limit,
-		},
-	}
-
-	return page, nil
-}
-
-func (repo *clientRepo) RetrieveAllByIDs(ctx context.Context, pm clients.Page) (clients.ClientsPage, error) {
-	if (len(pm.IDs) == 0) && (pm.Domain == "") {
-		return clients.ClientsPage{
-			Page: clients.Page{Total: pm.Total, Offset: pm.Offset, Limit: pm.Limit},
-		}, nil
-	}
-	query, err := PageQuery(pm)
-	if err != nil {
-		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
-	}
-	query = applyOrdering(query, pm)
-
-	q := fmt.Sprintf(`SELECT c.id, c.name, c.tags, c.identity, c.metadata, COALESCE(c.domain_id, '') AS domain_id, COALESCE(parent_group_id, '') AS parent_group_id, c.status,
-					c.created_at, c.updated_at, COALESCE(c.updated_by, '') AS updated_by FROM clients c %s ORDER BY c.created_at LIMIT :limit OFFSET :offset;`, query)
-
-	dbPage, err := ToDBClientsPage(pm)
-	if err != nil {
-		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrFailedToRetrieveAllGroups, err)
-	}
-	rows, err := repo.DB.NamedQueryContext(ctx, q, dbPage)
-	if err != nil {
-		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrFailedToRetrieveAllGroups, err)
-	}
-	defer rows.Close()
-
-	var items []clients.Client
-	for rows.Next() {
-		dbc := DBClient{}
-		if err := rows.StructScan(&dbc); err != nil {
-			return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
-		}
-
-		c, err := ToClient(dbc)
-		if err != nil {
-			return clients.ClientsPage{}, err
-		}
-
-		items = append(items, c)
-	}
-	cq := fmt.Sprintf(`SELECT COUNT(*) FROM clients c %s;`, query)
-
 	total, err := postgres.Total(ctx, repo.DB, cq, dbPage)
 	if err != nil {
 		return clients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
@@ -402,18 +689,27 @@ func (repo *clientRepo) Delete(ctx context.Context, clientIDs ...string) error {
 }
 
 type DBClient struct {
-	ID          string           `db:"id"`
-	Name        string           `db:"name,omitempty"`
-	Tags        pgtype.TextArray `db:"tags,omitempty"`
-	Identity    string           `db:"identity"`
-	Domain      string           `db:"domain_id"`
-	ParentGroup sql.NullString   `db:"parent_group_id,omitempty"`
-	Secret      string           `db:"secret"`
-	Metadata    []byte           `db:"metadata,omitempty"`
-	CreatedAt   time.Time        `db:"created_at,omitempty"`
-	UpdatedAt   sql.NullTime     `db:"updated_at,omitempty"`
-	UpdatedBy   *string          `db:"updated_by,omitempty"`
-	Status      clients.Status   `db:"status,omitempty"`
+	ID                        string           `db:"id"`
+	Name                      string           `db:"name,omitempty"`
+	Tags                      pgtype.TextArray `db:"tags,omitempty"`
+	Identity                  string           `db:"identity"`
+	Domain                    string           `db:"domain_id"`
+	ParentGroup               sql.NullString   `db:"parent_group_id,omitempty"`
+	Secret                    string           `db:"secret"`
+	Metadata                  []byte           `db:"metadata,omitempty"`
+	CreatedAt                 time.Time        `db:"created_at,omitempty"`
+	UpdatedAt                 sql.NullTime     `db:"updated_at,omitempty"`
+	UpdatedBy                 *string          `db:"updated_by,omitempty"`
+	Status                    clients.Status   `db:"status,omitempty"`
+	ParentGroupPath           string           `db:"parent_group_path,omitempty"`
+	RoleID                    string           `db:"role_id,omitempty"`
+	RoleName                  string           `db:"role_name,omitempty"`
+	Actions                   pq.StringArray   `db:"actions,omitempty"`
+	AccessType                string           `db:"access_type,omitempty"`
+	AccessProviderId          string           `db:"access_provider_id,omitempty"`
+	AccessProviderRoleId      string           `db:"access_provider_role_id,omitempty"`
+	AccessProviderRoleName    string           `db:"access_provider_role_name,omitempty"`
+	AccessProviderRoleActions pq.StringArray   `db:"access_provider_role_actions,omitempty"`
 }
 
 func ToDBClient(c clients.Client) (DBClient, error) {
@@ -484,11 +780,19 @@ func ToClient(t DBClient) (clients.Client, error) {
 			Identity: t.Identity,
 			Secret:   t.Secret,
 		},
-		Metadata:  metadata,
-		CreatedAt: t.CreatedAt,
-		UpdatedAt: updatedAt,
-		UpdatedBy: updatedBy,
-		Status:    t.Status,
+		Metadata:                  metadata,
+		CreatedAt:                 t.CreatedAt,
+		UpdatedAt:                 updatedAt,
+		UpdatedBy:                 updatedBy,
+		Status:                    t.Status,
+		RoleID:                    t.RoleID,
+		RoleName:                  t.RoleName,
+		Actions:                   t.Actions,
+		AccessType:                t.AccessType,
+		AccessProviderId:          t.AccessProviderId,
+		AccessProviderRoleId:      t.AccessProviderRoleId,
+		AccessProviderRoleName:    t.AccessProviderRoleName,
+		AccessProviderRoleActions: t.AccessProviderRoleActions,
 	}
 	return cli, nil
 }
@@ -499,31 +803,42 @@ func ToDBClientsPage(pm clients.Page) (dbClientsPage, error) {
 		return dbClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
 	}
 	return dbClientsPage{
-		Name:     pm.Name,
-		Identity: pm.Identity,
-		Id:       pm.Id,
-		Metadata: data,
-		Domain:   pm.Domain,
-		Total:    pm.Total,
-		Offset:   pm.Offset,
-		Limit:    pm.Limit,
-		Status:   pm.Status,
-		Tag:      pm.Tag,
+		Offset:     pm.Offset,
+		Limit:      pm.Limit,
+		Name:       pm.Name,
+		Identity:   pm.Identity,
+		Id:         pm.Id,
+		Metadata:   data,
+		Domain:     pm.Domain,
+		Status:     pm.Status,
+		Tag:        pm.Tag,
+		GroupID:    pm.Group,
+		ChannelID:  pm.Channel,
+		RoleName:   pm.RoleName,
+		ConnType:   pm.ConnectionType,
+		RoleID:     pm.RoleID,
+		Actions:    pm.Actions,
+		AccessType: pm.AccessType,
 	}, nil
 }
 
 type dbClientsPage struct {
-	Total    uint64         `db:"total"`
-	Limit    uint64         `db:"limit"`
-	Offset   uint64         `db:"offset"`
-	Name     string         `db:"name"`
-	Id       string         `db:"id"`
-	Domain   string         `db:"domain_id"`
-	Identity string         `db:"identity"`
-	Metadata []byte         `db:"metadata"`
-	Tag      string         `db:"tag"`
-	Status   clients.Status `db:"status"`
-	GroupID  string         `db:"group_id"`
+	Limit      uint64         `db:"limit"`
+	Offset     uint64         `db:"offset"`
+	Name       string         `db:"name"`
+	Id         string         `db:"id"`
+	Domain     string         `db:"domain_id"`
+	Identity   string         `db:"identity"`
+	Metadata   []byte         `db:"metadata"`
+	Tag        string         `db:"tag"`
+	Status     clients.Status `db:"status"`
+	GroupID    string         `db:"group_id"`
+	ChannelID  string         `db:"channel_id"`
+	ConnType   string         `db:"type"`
+	RoleName   string         `db:"role_name"`
+	RoleID     string         `db:"role_id"`
+	Actions    pq.StringArray `db:"actions"`
+	AccessType string         `db:"access_type"`
 }
 
 func PageQuery(pm clients.Page) (string, error) {
@@ -534,21 +849,16 @@ func PageQuery(pm clients.Page) (string, error) {
 
 	var query []string
 	if pm.Name != "" {
-		query = append(query, "name ILIKE '%' || :name || '%'")
+		query = append(query, "c.name ILIKE '%' || :name || '%'")
 	}
 	if pm.Identity != "" {
-		query = append(query, "identity ILIKE '%' || :identity || '%'")
+		query = append(query, "c.identity ILIKE '%' || :identity || '%'")
 	}
 	if pm.Id != "" {
-		query = append(query, "id ILIKE '%' || :id || '%'")
+		query = append(query, "c.id ILIKE '%' || :id || '%'")
 	}
 	if pm.Tag != "" {
 		query = append(query, "EXISTS (SELECT 1 FROM unnest(tags) AS tag WHERE tag ILIKE '%' || :tag || '%')")
-	}
-	// If there are search params presents, use search and ignore other options.
-	// Always combine role with search params, so len(query) > 1.
-	if len(query) > 1 {
-		return fmt.Sprintf("WHERE %s", strings.Join(query, " AND ")), nil
 	}
 
 	if mq != "" {
@@ -556,14 +866,40 @@ func PageQuery(pm clients.Page) (string, error) {
 	}
 
 	if len(pm.IDs) != 0 {
-		query = append(query, fmt.Sprintf("id IN ('%s')", strings.Join(pm.IDs, "','")))
+		query = append(query, fmt.Sprintf("c.id IN ('%s')", strings.Join(pm.IDs, "','")))
 	}
+
 	if pm.Status != clients.AllStatus {
 		query = append(query, "c.status = :status")
 	}
 	if pm.Domain != "" {
 		query = append(query, "c.domain_id = :domain_id")
 	}
+	if pm.Group != "" {
+		query = append(query, "c.parent_group_path @> (SELECT path from groups where id = :group_id) ")
+	}
+	if pm.Channel != "" {
+		query = append(query, "conn.channel_id = :channel_id ")
+		if pm.ConnectionType != "" {
+			query = append(query, "conn.type = :conn_type ")
+		}
+	}
+	if pm.AccessType != "" {
+		query = append(query, "c.access_type = :access_type")
+	}
+	if pm.RoleID != "" {
+		query = append(query, "c.role_id = :role_id")
+	}
+	if pm.RoleName != "" {
+		query = append(query, "c.role_name = :role_name")
+	}
+	if len(pm.Actions) != 0 {
+		query = append(query, "c.actions @> :actions")
+	}
+	if len(pm.Metadata) > 0 {
+		query = append(query, "c.metadata @> :metadata")
+	}
+
 	var emq string
 	if len(query) > 0 {
 		emq = fmt.Sprintf("WHERE %s", strings.Join(query, " AND "))
