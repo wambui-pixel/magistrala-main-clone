@@ -21,6 +21,7 @@ import (
 	jaegerclient "github.com/absmach/supermq/pkg/jaeger"
 	"github.com/absmach/supermq/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/supermq/pkg/messaging/brokers/tracing"
+	msgevents "github.com/absmach/supermq/pkg/messaging/events"
 	"github.com/absmach/supermq/pkg/prometheus"
 	"github.com/absmach/supermq/pkg/server"
 	coapserver "github.com/absmach/supermq/pkg/server/coap"
@@ -47,6 +48,7 @@ type config struct {
 	SendTelemetry bool    `env:"SMQ_SEND_TELEMETRY"           envDefault:"true"`
 	InstanceID    string  `env:"SMQ_COAP_ADAPTER_INSTANCE_ID" envDefault:""`
 	TraceRatio    float64 `env:"SMQ_JAEGER_TRACE_RATIO"       envDefault:"1.0"`
+	ESURL         string  `env:"SMQ_ES_URL"                   envDefault:"nats://localhost:4222"`
 }
 
 func main() {
@@ -142,6 +144,13 @@ func main() {
 	}
 	defer nps.Close()
 	nps = brokerstracing.NewPubSub(coapServerConfig, tracer, nps)
+
+	nps, err = msgevents.NewPubSubMiddleware(ctx, nps, cfg.ESURL)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to create event store middleware: %s", err))
+		exitCode = 1
+		return
+	}
 
 	svc := coap.New(clientsClient, channelsClient, nps)
 

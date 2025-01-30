@@ -5,18 +5,48 @@ package events
 
 import "github.com/absmach/supermq/pkg/events"
 
-var _ events.Event = (*mqttEvent)(nil)
+const (
+	mqttPrefix       = "mqtt"
+	clientSubscribe  = mqttPrefix + ".client_subscribe"
+	clientConnect    = mqttPrefix + ".client_connect"
+	clientDisconnect = mqttPrefix + ".client_disconnect"
+)
 
-type mqttEvent struct {
-	clientID  string
-	operation string
-	instance  string
+var (
+	_ events.Event = (*connectEvent)(nil)
+	_ events.Event = (*subscribeEvent)(nil)
+)
+
+type connectEvent struct {
+	operation    string
+	clientID     string
+	subscriberID string
+	instance     string
 }
 
-func (me mqttEvent) Encode() (map[string]interface{}, error) {
+func (ce connectEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"client_id": me.clientID,
-		"operation": me.operation,
-		"instance":  me.instance,
+		"operation":     ce.operation,
+		"client_id":     ce.clientID,
+		"subscriber_id": ce.subscriberID,
+		"instance":      ce.instance,
+	}, nil
+}
+
+type subscribeEvent struct {
+	operation    string
+	clientID     string
+	subscriberID string
+	channelID    string
+	subtopic     string
+}
+
+func (se subscribeEvent) Encode() (map[string]interface{}, error) {
+	return map[string]interface{}{
+		"operation":     se.operation,
+		"client_id":     se.clientID,
+		"subscriber_id": se.subscriberID,
+		"channel_id":    se.channelID,
+		"subtopic":      se.subtopic,
 	}, nil
 }

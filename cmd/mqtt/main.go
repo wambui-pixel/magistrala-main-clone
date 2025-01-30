@@ -32,6 +32,7 @@ import (
 	jaegerclient "github.com/absmach/supermq/pkg/jaeger"
 	"github.com/absmach/supermq/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/supermq/pkg/messaging/brokers/tracing"
+	msgevents "github.com/absmach/supermq/pkg/messaging/events"
 	"github.com/absmach/supermq/pkg/messaging/handler"
 	mqttpub "github.com/absmach/supermq/pkg/messaging/mqtt"
 	"github.com/absmach/supermq/pkg/server"
@@ -134,6 +135,13 @@ func main() {
 	defer bsub.Close()
 	bsub = brokerstracing.NewPubSub(serverConfig, tracer, bsub)
 
+	bsub, err = msgevents.NewPubSubMiddleware(ctx, bsub, cfg.ESURL)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to create event store middleware: %s", err))
+		exitCode = 1
+		return
+	}
+
 	mpub, err := mqttpub.NewPublisher(fmt.Sprintf("mqtt://%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort), cfg.MQTTQoS, cfg.MQTTForwarderTimeout)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create MQTT publisher: %s", err))
@@ -141,6 +149,13 @@ func main() {
 		return
 	}
 	defer mpub.Close()
+
+	mpub, err = msgevents.NewPublisherMiddleware(ctx, mpub, cfg.ESURL)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to create event store middleware: %s", err))
+		exitCode = 1
+		return
+	}
 
 	fwd := mqtt.NewForwarder(brokers.SubjectAllChannels, logger)
 	fwd = mqtttracing.New(serverConfig, tracer, fwd, brokers.SubjectAllChannels)
@@ -158,6 +173,13 @@ func main() {
 	}
 	defer np.Close()
 	np = brokerstracing.NewPublisher(serverConfig, tracer, np)
+
+	np, err = msgevents.NewPublisherMiddleware(ctx, np, cfg.ESURL)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to create event store middleware: %s", err))
+		exitCode = 1
+		return
+	}
 
 	es, err := events.NewEventStore(ctx, cfg.ESURL, cfg.Instance)
 	if err != nil {

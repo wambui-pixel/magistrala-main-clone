@@ -147,7 +147,7 @@ func TestAuthConnect(t *testing.T) {
 				password = string(tc.session.Password)
 			}
 			clientsCall := clients.On("Authenticate", mock.Anything, &grpcClientsV1.AuthnReq{ClientSecret: password}).Return(tc.authNRes, tc.authNErr)
-			svcCall := eventStore.On("Connect", mock.Anything, password).Return(tc.err)
+			svcCall := eventStore.On("Connect", mock.Anything, clientID, mock.Anything).Return(tc.err)
 			err := handler.AuthConnect(ctx)
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 			svcCall.Unset()
@@ -445,9 +445,11 @@ func TestSubscribe(t *testing.T) {
 		if tc.session != nil {
 			ctx = session.NewContext(ctx, tc.session)
 		}
+		eventsCall := eventStore.On("Subscribe", mock.Anything, clientID, chanID, clientID, mock.Anything).Return(nil)
 		err := handler.Subscribe(ctx, &tc.topic)
 		assert.Contains(t, logBuffer.String(), tc.logMsg)
 		assert.Equal(t, tc.err, err)
+		eventsCall.Unset()
 	}
 }
 
@@ -514,12 +516,10 @@ func TestDisconnect(t *testing.T) {
 
 	for _, tc := range cases {
 		ctx := context.TODO()
-		password := ""
 		if tc.session != nil {
 			ctx = session.NewContext(ctx, tc.session)
-			password = string(tc.session.Password)
 		}
-		svcCall := eventStore.On("Disconnect", mock.Anything, password).Return(tc.err)
+		svcCall := eventStore.On("Disconnect", mock.Anything, clientID, mock.Anything).Return(tc.err)
 		err := handler.Disconnect(ctx)
 		assert.Contains(t, logBuffer.String(), tc.logMsg)
 		assert.Equal(t, tc.err, err)
