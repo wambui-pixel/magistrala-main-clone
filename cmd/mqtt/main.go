@@ -135,13 +135,6 @@ func main() {
 	defer bsub.Close()
 	bsub = brokerstracing.NewPubSub(serverConfig, tracer, bsub)
 
-	bsub, err = msgevents.NewPubSubMiddleware(ctx, bsub, cfg.ESURL)
-	if err != nil {
-		logger.Error(fmt.Sprintf("failed to create event store middleware: %s", err))
-		exitCode = 1
-		return
-	}
-
 	mpub, err := mqttpub.NewPublisher(fmt.Sprintf("mqtt://%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort), cfg.MQTTQoS, cfg.MQTTForwarderTimeout)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create MQTT publisher: %s", err))
@@ -181,13 +174,6 @@ func main() {
 		return
 	}
 
-	es, err := events.NewEventStore(ctx, cfg.ESURL, cfg.Instance)
-	if err != nil {
-		logger.Error(fmt.Sprintf("failed to create %s event store : %s", svcName, err))
-		exitCode = 1
-		return
-	}
-
 	clientsClientCfg := grpcclient.Config{}
 	if err := env.ParseWithOptions(&clientsClientCfg, env.Options{Prefix: envPrefixClients}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
@@ -220,7 +206,15 @@ func main() {
 	defer channelsHandler.Close()
 	logger.Info("Channels service gRPC client successfully connected to channels gRPC server " + channelsHandler.Secure())
 
-	h := mqtt.NewHandler(np, es, logger, clientsClient, channelsClient)
+	h := mqtt.NewHandler(np, logger, clientsClient, channelsClient)
+
+	h, err = events.NewEventStoreMiddleware(ctx, h, cfg.ESURL, cfg.Instance)
+	if err != nil {
+		logger.Error(fmt.Sprintf("failed to create event store middleware: %s", err))
+		exitCode = 1
+		return
+	}
+
 	h = handler.NewTracing(tracer, h)
 
 	if cfg.SendTelemetry {
