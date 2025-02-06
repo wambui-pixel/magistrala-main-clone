@@ -10,7 +10,6 @@ import (
 
 	apiutil "github.com/absmach/supermq/api/http/util"
 	smqauthn "github.com/absmach/supermq/pkg/authn"
-	"github.com/absmach/supermq/pkg/policies"
 )
 
 type EntityType uint8
@@ -46,20 +45,6 @@ func (e EntityType) String() string {
 	}
 }
 
-// AuthString returns the entity type as a string for authorization.
-func (e EntityType) AuthString() string {
-	switch e {
-	case UserEntity:
-		return policies.UserType
-	case GroupEntity, ChannelEntity:
-		return policies.GroupType
-	case ClientEntity:
-		return policies.ClientType
-	default:
-		return ""
-	}
-}
-
 // ToEntityType converts string value to a valid entity type.
 func ToEntityType(entityType string) (EntityType, error) {
 	switch entityType {
@@ -81,8 +66,10 @@ func (e EntityType) Query() string {
 	switch e {
 	case UserEntity:
 		return "((operation LIKE 'user.%' AND attributes->>'id' = :entity_id) OR (attributes->>'user_id' = :entity_id))"
-	case GroupEntity, ChannelEntity:
+	case GroupEntity:
 		return "((operation LIKE 'group.%' AND attributes->>'id' = :entity_id) OR (attributes->>'group_id' = :entity_id))"
+	case ChannelEntity:
+		return "((operation LIKE 'channel.%' AND attributes->>'id' = :entity_id) OR (attributes->>'channel_id' = :entity_id) OR (jsonb_exists_any(attributes->'channel_ids', array[:entity_id])))"
 	case ClientEntity:
 		return "((operation LIKE 'client.%' AND attributes->>'id' = :entity_id) OR (attributes->>'client_id' = :entity_id))"
 	default:

@@ -61,39 +61,33 @@ func TestEntityType(t *testing.T) {
 		desc        string
 		e           journal.EntityType
 		str         string
-		authString  string
 		queryString string
 	}{
 		{
-			desc:       "UserEntity",
-			e:          journal.UserEntity,
-			str:        "user",
-			authString: "user",
+			desc: "UserEntity",
+			e:    journal.UserEntity,
+			str:  "user",
 		},
 		{
-			desc:       "ClientEntity",
-			e:          journal.ClientEntity,
-			str:        "client",
-			authString: "client",
+			desc: "ClientEntity",
+			e:    journal.ClientEntity,
+			str:  "client",
 		},
 		{
-			desc:       "GroupEntity",
-			e:          journal.GroupEntity,
-			str:        "group",
-			authString: "group",
+			desc: "GroupEntity",
+			e:    journal.GroupEntity,
+			str:  "group",
 		},
 		{
-			desc:       "ChannelEntity",
-			e:          journal.ChannelEntity,
-			str:        "channel",
-			authString: "group",
+			desc: "ChannelEntity",
+			e:    journal.ChannelEntity,
+			str:  "channel",
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			assert.Equal(t, tc.str, tc.e.String())
-			assert.Equal(t, tc.authString, tc.e.AuthString())
 			assert.NotEmpty(t, tc.e.Query())
 		})
 	}

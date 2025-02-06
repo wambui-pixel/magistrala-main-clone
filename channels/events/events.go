@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	channelPrefix       = "channels."
+	channelPrefix       = "channel."
 	channelCreate       = channelPrefix + "create"
 	channelUpdate       = channelPrefix + "update"
 	channelChangeStatus = channelPrefix + "change_status"

@@ -37,12 +37,12 @@ func (am *authorizationMiddleware) Save(ctx context.Context, journal journal.Jou
 
 func (am *authorizationMiddleware) RetrieveAll(ctx context.Context, session smqauthn.Session, page journal.Page) (journal.JournalsPage, error) {
 	permission := readPermission
-	objectType := page.EntityType.AuthString()
+	objectType := page.EntityType.String()
 	object := page.EntityID
 	subject := session.DomainUserID
 
 	// If the entity is a user, we need to check if the user is an admin
-	if page.EntityType.AuthString() == policies.UserType {
+	if page.EntityType.String() == policies.UserType {
 		permission = policies.AdminPermission
 		objectType = policies.PlatformType
 		object = policies.SuperMQObject
